@@ -1,0 +1,2 @@
+:root { --hz-ease: cubic-bezier(.2,.8,.2,1); --hz-dur-fast: 120ms; --hz-dur: 200ms; --hz-dur-slow: 400ms; }
+@media (prefers-reduced-motion: reduce){ :root{ --hz-dur-fast:0ms; --hz-dur:0ms; --hz-dur-slow:0ms; } }

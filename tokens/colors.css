@@ -1,0 +1,12 @@
+/* Hanzo Design System — color tokens (true-black OLED). Source: guidelines/DESIGN.md §4. */
+:root {
+  --hz-bg:            #000000;   /* page / canvas */
+  --hz-surface:       #0a0a0a;   /* sidebars, panels, cards (resting) */
+  --hz-press:         #050505;   /* pressed surface */
+  --hz-elevated:      #171717;   /* hover, raised card */
+  --hz-border:        rgba(255,255,255,0.10); /* hairline divider */
+  --hz-fg:            #ededf1;   /* primary text (near-white, not pure #fff) */
+  --hz-fg-muted:      rgba(255,255,255,0.70);  /* secondary text */
+  --hz-hover:         rgba(255,255,255,0.05);  /* item hover */
+  --hz-active:        rgba(255,255,255,0.10);  /* item active (monochrome, no accent) */
+}

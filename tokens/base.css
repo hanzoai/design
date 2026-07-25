@@ -1,0 +1,5 @@
+/* Hanzo Design System — base. Imports the token layers; the ONE entry a surface pulls. */
+@import './colors.css'; @import './fonts.css'; @import './spacing.css';
+@import './radius.css'; @import './elevation.css'; @import './motion.css';
+html,body{ background:var(--hz-bg); color:var(--hz-fg); font-family:var(--hz-font-sans); }
+code,pre,kbd{ font-family:var(--hz-font-mono); }

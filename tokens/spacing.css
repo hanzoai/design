@@ -1,0 +1,7 @@
+/* Hanzo Design System — spacing + sidebar. Source: DESIGN.md §3. */
+:root {
+  --hz-sidebar-w: 16rem;      /* 256px expanded */
+  --hz-sidebar-rail: 3rem;    /* 48px collapsed icon rail */
+  --hz-space-1: 0.25rem; --hz-space-2: 0.5rem; --hz-space-3: 0.75rem;
+  --hz-space-4: 1rem; --hz-space-6: 1.5rem; --hz-space-8: 2rem;
+}

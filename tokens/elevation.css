@@ -1,0 +1,5 @@
+/* Monochrome depth ladder — surface lightening, not shadow (OLED house style). */
+:root {
+  --hz-elev-0: var(--hz-bg); --hz-elev-1: var(--hz-surface);
+  --hz-elev-2: var(--hz-elevated); --hz-elev-3: #1f1f1f;
+}

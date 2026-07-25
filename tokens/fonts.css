@@ -1,0 +1,9 @@
+/* Hanzo Design System — typography (Basel Grotesk + Geist Mono). Source: DESIGN.md §1. */
+@font-face { font-family:'Basel'; font-style:normal; font-weight:400; font-display:swap;
+  src:url('../assets/fonts/Basel-Grotesk-Book.woff2') format('woff2'); }
+@font-face { font-family:'Basel'; font-style:normal; font-weight:500; font-display:swap;
+  src:url('../assets/fonts/Basel-Grotesk-Medium.woff2') format('woff2'); }
+:root {
+  --hz-font-sans: 'Basel', ui-sans-serif, system-ui, sans-serif;   /* UI / body / display */
+  --hz-font-mono: 'Geist Mono', ui-monospace, monospace;           /* code / data */
+}

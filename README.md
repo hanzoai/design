@@ -1,0 +1,54 @@
+<div align="center">
+
+# Hanzo Design System
+
+**Monochrome. Dark by default. One hue rendered through an opacity ladder.**
+
+The single source of truth for how every Hanzo surface looks — tokens, components, brand assets, and the guidelines that hold them together.
+
+`@hanzoai/design`
+
+</div>
+
+## Use it
+
+One import pulls in the whole token layer (fonts, color, type, spacing, radius, elevation, motion):
+
+```css
+@import "@hanzoai/design/styles.css";
+```
+
+Everything below is expressed as CSS custom properties, so code copies over 1:1 — the semantic names match `hanzo.ai`'s variables exactly.
+
+```jsx
+import { Button } from "@hanzoai/design/components/core/Button.jsx";
+import { HanzoLogo } from "@hanzoai/design/components/core/HanzoLogo.jsx";
+
+<Button pill>Try Hanzo</Button>
+```
+
+## What's inside
+
+| Path | What |
+|------|------|
+| `styles.css` | The one entry point — imports every token file below. |
+| `tokens/` | The palette. `colors` (monochrome opacity ladder, dark-default), `typography`, `spacing`, `radius`, `elevation`, `motion`, `fonts`, `base`. |
+| `components/` | `core` (Button, Card, Badge, Icon, HanzoLogo, Avatar, ChromeText…), `forms`, `overlays`, `navigation` — each as `.jsx` + `.d.ts` + a `.prompt.md` usage guide. |
+| `guidelines/` | Specimen cards — color, type, spacing, brand, iconography — the visual reference. |
+| `assets/` | The mark, wordmark, favicon, provider + partner logos, brand imagery. |
+| `ui_kits/` | Composed surfaces (e.g. `SiteChrome`) assembled from the components. |
+
+## Principles
+
+- **Monochrome by construction** — one neutral ladder plus an opacity ladder is the entire palette. Color appears only as genuine semantics (live/error/warning).
+- **Dark is the default theme** — surfaces mount dark-first; light is the override.
+- **Self-contained components** — inline styles, no CSS-framework coupling, so a component drops into any host (Next, Vite, Tamagui, none) and renders identically.
+- **Every component ships its own `.prompt.md`** — a one-screen usage guide for humans and AI alike.
+
+## Source of truth
+
+Tokens track `hanzo.ai` (`app/globals.css`, `tailwind.config.ts`, `DESIGN.md`) and the press kit. When the brand moves, it moves here first.
+
+## License
+
+MIT. Brand marks (the Hanzo logo, partner and provider logos) are the property of their respective owners and are provided for identification.

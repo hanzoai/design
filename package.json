@@ -11,8 +11,10 @@
     "./styles.css": "./styles.css",
     "./tokens/*": "./tokens/*",
     "./components/*": "./components/*",
+    "./prompts/*": "./prompts/*",
+    "./content/*": "./content/*",
     "./assets/*": "./assets/*"
   },
-  "files": ["styles.css", "tokens", "components", "assets", "guidelines", "ui_kits"],
+  "files": ["styles.css", "tokens", "components", "prompts", "content", "docs", "assets", "guidelines", "ui_kits"],
   "keywords": ["hanzo", "design-system", "design-tokens", "brand", "monochrome"]
 }

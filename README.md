@@ -32,8 +32,11 @@ import { HanzoLogo } from "@hanzoai/design/components/core/HanzoLogo.jsx";
 | Path | What |
 |------|------|
 | `styles.css` | The one entry point — imports every token file below. |
-| `tokens/` | The palette. `colors` (monochrome opacity ladder, dark-default), `typography`, `spacing`, `radius`, `elevation`, `motion`, `fonts`, `base`. |
+| `tokens/` | The palette. `colors` (monochrome opacity ladder, dark-default), `typography`, `spacing`, `radius`, `elevation`, `motion`, `z`, `fonts`, `base`. |
 | `components/` | `core` (Button, Card, Badge, Icon, HanzoLogo, Avatar, ChromeText…), `forms`, `overlays`, `navigation` — each as `.jsx` + `.d.ts` + a `.prompt.md` usage guide. |
+| `prompts/` | System-level generation guidance — the "make it look Hanzo" system prompt, do/don't rules, page prompts. |
+| `content/` | The words — brand voice and taglines. |
+| `docs/` | How to use the system — integrate the tokens, theme, extend. |
 | `guidelines/` | Specimen cards — color, type, spacing, brand, iconography — the visual reference. |
 | `assets/` | The mark, wordmark, favicon, provider + partner logos, brand imagery. |
 | `ui_kits/` | Composed surfaces (e.g. `SiteChrome`) assembled from the components. |

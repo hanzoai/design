@@ -1,12 +1,17 @@
 {
-  "name": "@hanzoai/design",
+  "name": "@hanzo/design",
   "version": "0.1.0",
-  "description": "Hanzo Design System — monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface.",
+  "description": "Hanzo Design System \u2014 monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface.",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/hanzoai/design.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hanzoai/design.git"
+  },
   "homepage": "https://hanzo.ai",
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     "./styles.css": "./styles.css",
     "./tokens/*": "./tokens/*",
@@ -15,6 +20,26 @@
     "./content/*": "./content/*",
     "./assets/*": "./assets/*"
   },
-  "files": ["styles.css", "tokens", "components", "prompts", "content", "docs", "assets", "guidelines", "ui_kits"],
-  "keywords": ["hanzo", "design-system", "design-tokens", "brand", "monochrome"]
+  "files": [
+    "styles.css",
+    "tokens",
+    "components",
+    "prompts",
+    "content",
+    "docs",
+    "assets",
+    "guidelines",
+    "ui_kits"
+  ],
+  "keywords": [
+    "hanzo",
+    "design-system",
+    "design-tokens",
+    "brand",
+    "monochrome"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

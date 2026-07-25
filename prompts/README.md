@@ -24,3 +24,10 @@ Everything here assumes one import gives you the tokens:
 ```
 
 So every rule below can be obeyed with a CSS variable, never a hardcoded hex.
+
+## The two prompts (one and one way)
+- **`system.md`** — the design LANGUAGE prompt: paste as a system prompt to make any
+  model generate Hanzo-looking output (monochrome, true-black, token-only).
+- **`studio-designer.md`** — the AGENTIC prompt Hanzo Studio's Design System designer
+  hands the Hanzo agent stack to GENERATE/EDIT this repo's file tree with its file
+  tools, grounded in `guidelines/DESIGN.md`. Uses `system.md`'s language rules.

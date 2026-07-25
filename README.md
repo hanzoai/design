@@ -15,8 +15,31 @@ The single source of truth for how every Hanzo surface looks — tokens, compone
 One import pulls in the whole token layer (fonts, color, type, spacing, radius, elevation, motion):
 
 ```css
-@import "@hanzoai/design/styles.css";
+@import "@hanzo/design/styles.css";
 ```
+
+### Programmatic tokens (control look & feel from code)
+
+The same tokens are exposed to TypeScript — **generated from the CSS**, so the two
+can never drift. Edit a token in `tokens/*.css`, run `npm run build`, and both the
+stylesheet and the code API update together. This is the one place to drive Hanzo's
+look & feel programmatically (the `@hanzogui/shell` theme, Tamagui, any TS surface):
+
+```ts
+import { colors, spacing, radius, zIndex, cssVar } from '@hanzo/design'
+
+spacing['space-4']    // "1rem"
+radius['radius-full'] // "9999px"
+zIndex['z-header']    // 300
+
+// Prefer cssVar() so a value resolves through the live cascade (honors light/dark):
+element.style.background = cssVar('--background')          // "var(--background)"
+element.style.color      = cssVar('--foreground', '#fff')  // with a fallback
+```
+
+Groups: `colors`, `typography`, `spacing`, `radius`, `elevation`, `motion`, `zIndex`,
+`fonts`, `base` (semantic aliases), plus `cssVars` (every token by its literal
+`--name`). All authored **once** in the token CSS — the single source of truth.
 
 Everything below is expressed as CSS custom properties, so code copies over 1:1 — the semantic names match `hanzo.ai`'s variables exactly.
 

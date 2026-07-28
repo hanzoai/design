@@ -3,14 +3,14 @@
 ## 1. Install
 
 ```bash
-pnpm add @hanzoai/design
+pnpm add @hanzo/design
 ```
 
 ## 2. Import the tokens — once
 
 ```css
 /* app/globals.css, or the root of your styles */
-@import "@hanzoai/design/styles.css";
+@import "@hanzo/design/styles.css";
 ```
 
 That one file pulls in, in order: fonts (Geist + Geist Mono), color, typography,
@@ -54,8 +54,8 @@ Each part ships as `.jsx` + `.d.ts` + a `.prompt.md` usage guide. They are
 self-contained (inline styles), so they need no framework:
 
 ```jsx
-import { Button } from "@hanzoai/design/components/core/Button.jsx";
-import { HanzoLogo } from "@hanzoai/design/components/core/HanzoLogo.jsx";
+import { Button } from "@hanzo/design/components/core/Button.jsx";
+import { HanzoLogo } from "@hanzo/design/components/core/HanzoLogo.jsx";
 
 <HanzoLogo />
 <Button pill>Get started</Button>

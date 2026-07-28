@@ -29,7 +29,7 @@ export function Toaster({ duration = 3500, position = 'bottom-right' }) {
   }, [duration])
   const anchor = position === 'top-right' ? { top: 24, right: 24 } : { bottom: 24, right: 24 }
   return (
-    <div style={{position:'fixed',zIndex:90,display:'flex',flexDirection:'column',gap:8,...anchor}}>
+    <div style={{position:'fixed',zIndex:'var(--z-toast)',display:'flex',flexDirection:'column',gap:8,...anchor}}>
       {items.map((i) => (
         <div key={i.id} style={{
           minWidth:260,maxWidth:380,padding:'12px 14px',display:'flex',alignItems:'flex-start',gap:10,

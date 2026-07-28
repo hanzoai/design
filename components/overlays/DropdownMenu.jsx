@@ -18,7 +18,7 @@ export function DropdownMenu({ align = 'right', hover = false, trigger, style, c
     >
       <span onClick={() => setOpen((v) => !v)} style={{display:'inline-flex'}}>{trigger}</span>
       {open && (
-        <div style={{position:'absolute',top:'100%',[align]:0,paddingTop:12,zIndex:70,minWidth:208}}>
+        <div style={{position:'absolute',top:'100%',[align]:0,paddingTop:12,zIndex:'var(--z-dropdown)',minWidth:208}}>
           <div style={{display:'flex',flexDirection:'column',padding:8,background:'var(--surface-overlay)',border:'1px solid var(--border-hairline)',borderRadius:'var(--radius-xl)',boxShadow:'var(--shadow-floating)',backdropFilter:'blur(16px)',animation:'hanzo-fade-down var(--duration-fast) var(--ease-out)'}}>
             {children}
           </div>

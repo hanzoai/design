@@ -70,6 +70,7 @@
   --surface-card-quiet:rgb(23 23 23 / .4);   /* bg-neutral-900/40 — story cards */
   --surface-overlay:rgb(10 10 10 / .95);     /* dropdown / popover panels       */
   --surface-header:rgb(0 0 0 / .7);          /* fixed nav, with backdrop blur   */
+  --surface-scrim:rgb(0 0 0 / .8);           /* the dialog / sheet backdrop     */
   /* Boundaries come in two kinds and they are NOT interchangeable.
      DECORATIVE (--border, --border-hairline, --border-card): separates content;
      WCAG imposes no ratio. Keep them quiet.
@@ -138,6 +139,7 @@
   --surface-card-quiet:#fafafa;
   --surface-overlay:rgb(255 255 255 / .95);
   --surface-header:rgb(255 255 255 / .8);
+  --surface-scrim:rgb(0 0 0 / .5);
   --border-hairline:var(--neutral-200);
   --border-card:rgb(0 0 0 / .1);
   --border-strong:var(--neutral-500);   /* was --neutral-300 = 1.48:1 on white */

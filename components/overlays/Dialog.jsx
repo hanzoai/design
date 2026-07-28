@@ -11,7 +11,7 @@ export function Dialog({ open, onOpenChange, children }) {
   return (
     <div
       onClick={() => onOpenChange && onOpenChange(false)}
-      style={{position:'fixed',inset:0,zIndex:80,display:'flex',alignItems:'center',justifyContent:'center',padding:24,background:'rgb(0 0 0 / .8)',backdropFilter:'blur(4px)',animation:'hanzo-fade-up var(--duration-fast) var(--ease-out)'}}
+      style={{position:'fixed',inset:0,zIndex:'var(--z-modal)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,background:'var(--surface-scrim)',backdropFilter:'blur(4px)',animation:'hanzo-fade-up var(--duration-fast) var(--ease-out)'}}
     >
       {children}
     </div>

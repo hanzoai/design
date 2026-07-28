@@ -1,7 +1,34 @@
 /* Geist Sans + Geist Mono — the only two faces on Hanzo surfaces.
-   hanzo.ai loads them via next/font/google (Geist, Geist_Mono); here they come
-   from the same Google Fonts source, so the rendered face is identical. */
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap");
+   SELF-HOSTED. The faces ship inside this package (assets/fonts/*.woff2, two
+   variable files, 141 KB total, SIL OFL-1.1 — see assets/fonts/LICENSE-Geist.txt).
+
+   Why self-hosted rather than @import from fonts.googleapis.com:
+   - A sign-in page must not make a third-party request. hanzoai/id refused to
+     import this file for exactly that reason, which split the token layer: id
+     took the colours and not the typeface. Self-hosting removes the reason, so
+     every surface can import styles.css unchanged.
+   - The @import was a render-blocking request to a host we do not control, on
+     the critical path of every surface, and it broke offline/air-gapped dev.
+   - One variable file per family replaces nine static weights, and it is fewer
+     bytes than the CSS-then-woff2 round trip Google served.
+
+   The url()s are relative to THIS file, so they resolve wherever the package is
+   mounted — node_modules, a CDN, a copied dist — with no configuration. */
+
+@font-face{
+  font-family:"Geist";
+  src:url("../assets/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight:100 900;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:"Geist Mono";
+  src:url("../assets/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight:100 900;
+  font-style:normal;
+  font-display:swap;
+}
 
 :root{
   --font-sans:"Geist","Geist Sans",ui-sans-serif,system-ui,sans-serif;

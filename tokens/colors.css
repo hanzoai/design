@@ -51,7 +51,12 @@
   --destructive-foreground:#f5f5f5;
   --border:#1f1f1f;
   --input:#1f1f1f;
-  --ring:#333333;
+  /* A focus indicator is a NON-TEXT CONTRAST target: WCAG 2.4.11/1.4.11 require
+     3:1 against every surface it can land on. --neutral-500 is the only rung on
+     this ladder that clears 3:1 on all of them — #000000, #0a0a0a, #101010,
+     #1a1a1a, AND the light theme's #ffffff/#f5f5f5 — so one value serves both
+     themes. (Was #333333 = 1.66:1 on --background: not a focus indicator.) */
+  --ring:var(--neutral-500);
   --brand:#e4e4e7;
   --brand-foreground:#09090b;
   --brand-muted:#a3a3a3;
@@ -65,9 +70,24 @@
   --surface-card-quiet:rgb(23 23 23 / .4);   /* bg-neutral-900/40 — story cards */
   --surface-overlay:rgb(10 10 10 / .95);     /* dropdown / popover panels       */
   --surface-header:rgb(0 0 0 / .7);          /* fixed nav, with backdrop blur   */
+  /* Boundaries come in two kinds and they are NOT interchangeable.
+     DECORATIVE (--border, --border-hairline, --border-card): separates content;
+     WCAG imposes no ratio. Keep them quiet.
+     PERCEIVABLE (--border-strong): identifies a CONTROL — an input edge, a
+     switch, a checkbox — and must clear 3:1 (WCAG 1.4.11) on every surface.
+     Reach for --border-strong whenever the boundary IS the affordance. */
   --border-hairline:var(--neutral-800);
   --border-card:var(--white-10);
-  --border-strong:var(--neutral-700);
+  --border-strong:var(--neutral-500);   /* 3.59:1 worst case — see --ring */
+
+  /* ——— the numeric surface ladder ——— */
+  /* Aliases onto the semantic canvases above, so a brand fork that retunes
+     --card/--muted/--secondary retunes the ladder with it and the light theme
+     inverts for free. Ascending lift: 0 is the page, 3 is a hovered control. */
+  --surface-0:var(--background);
+  --surface-1:var(--card);
+  --surface-2:var(--muted);
+  --surface-3:var(--secondary);
 
   /* ——— text ranks ——— */
   --text-primary:var(--pure-white);
@@ -107,7 +127,10 @@
   --destructive-foreground:#ffffff;
   --border:#e5e5e5;
   --input:#e5e5e5;
-  --ring:#d4d4d4;
+  /* Same rung as dark: #d4d4d4 measured 1.48:1 on white and could not carry a
+     focus indicator either. --neutral-500 is 4.74:1 on #ffffff / 4.38:1 on
+     #f5f5f5, so ONE value is conformant in both themes. */
+  --ring:var(--neutral-500);
   --black:#0a0a0a;
   --white:#ffffff;
   --surface-card:#f5f5f5;
@@ -117,7 +140,10 @@
   --surface-header:rgb(255 255 255 / .8);
   --border-hairline:var(--neutral-200);
   --border-card:rgb(0 0 0 / .1);
-  --border-strong:var(--neutral-300);
+  --border-strong:var(--neutral-500);   /* was --neutral-300 = 1.48:1 on white */
+  /* The white-opacity ladder does NOT invert, so --white-40 is white-on-white
+     here (1.00:1). Anything that needs a visible edge in BOTH themes must use
+     --border-strong, never a --white-* rung. */
   --text-primary:var(--neutral-950);
   --text-secondary:rgb(10 10 10 / .8);
   --text-tertiary:rgb(10 10 10 / .6);

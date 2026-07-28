@@ -12,11 +12,16 @@ The single source of truth for how every Hanzo surface looks — tokens, compone
 
 ## Use it
 
-One import pulls in the whole token layer (fonts, color, type, spacing, radius, elevation, motion):
+One import pulls in the whole token layer — fonts, colour, type, spacing, radius,
+elevation, motion, **z**, base:
 
 ```css
 @import "@hanzo/design/styles.css";
 ```
+
+Import the **whole** file. Cherry-picking `tokens/*.css` is how surfaces ended up
+without the z ladder or the elevation ramp. The fonts are self-hosted, so this
+makes **no third-party request** — there is no longer a reason to skip a part of it.
 
 ### Programmatic tokens (control look & feel from code)
 
@@ -61,13 +66,42 @@ import { HanzoLogo } from "@hanzoai/design/components/core/HanzoLogo.jsx";
 | `content/` | The words — brand voice and taglines. |
 | `docs/` | How to use the system — integrate the tokens, theme, extend. |
 | `guidelines/` | Specimen cards — color, type, spacing, brand, iconography — the visual reference. |
+| `assets/fonts/` | Geist Sans + Geist Mono, self-hosted (two variable `.woff2`, 141 KB, SIL OFL-1.1). No Google Fonts request. |
 | `assets/` | The mark, wordmark, favicon, provider + partner logos, brand imagery. |
+| `scripts/check-tokens.mjs` | The gate: every token file is served, every internal `var()` resolves, and the contrast floors hold. Runs on `npm run build`. |
 | `ui_kits/` | Composed surfaces (e.g. `SiteChrome`) assembled from the components. |
+
+## Two kinds of boundary
+
+Not interchangeable, and the difference is a conformance requirement rather than
+a matter of taste:
+
+| Token | Kind | Contrast |
+|---|---|---|
+| `--border`, `--border-hairline`, `--border-card` | **decorative** — separates content | none required |
+| `--border-strong` | **perceivable** — identifies a *control* (input edge, switch, checkbox) | ≥ 3:1, WCAG 1.4.11 |
+| `--ring` | the focus indicator | ≥ 3:1, WCAG 2.4.11 |
+
+Reach for `--border-strong` whenever the boundary **is** the affordance. Both
+conformant tokens resolve to `--neutral-500`, the only rung on this ladder that
+clears 3:1 on every surface in **both** themes — `scripts/check-tokens.mjs`
+measures this on every build and fails if it ever stops being true.
+
+Note that the `--white-*` opacity ladder does **not** invert in light theme, so
+`--white-40` is white-on-white there. Anything needing a visible edge in both
+themes must use `--border-strong`.
 
 ## Principles
 
 - **Monochrome by construction** — one neutral ladder plus an opacity ladder is the entire palette. Color appears only as genuine semantics (live/error/warning).
 - **Dark is the default theme** — surfaces mount dark-first; light is the override.
+- **A token that is referenced must resolve** — an undefined custom property paints
+  *nothing*, silently. `cssVar()` therefore accepts only real token names (a typo
+  is a compile error) and emits the authored literal as a fallback, so a reference
+  still paints on a host that has not loaded the CSS.
+- **White-label by fork** — `@luxfi/design` and `@zooai/design` carry the same token
+  *names* over their own values. A change here must be measured against all three
+  before it ships; one that fixes Hanzo and breaks Zoo is a regression.
 - **Self-contained components** — inline styles, no CSS-framework coupling, so a component drops into any host (Next, Vite, Tamagui, none) and renders identically.
 - **Every component ships its own `.prompt.md`** — a one-screen usage guide for humans and AI alike.
 

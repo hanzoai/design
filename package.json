@@ -1,7 +1,7 @@
 {
   "name": "@hanzo/design",
-  "version": "0.3.0",
-  "description": "Hanzo Design System \u2014 monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
+  "version": "0.3.1",
+  "description": "Hanzo Design System — monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
@@ -25,13 +25,15 @@
     "./components/*": "./components/*",
     "./prompts/*": "./prompts/*",
     "./content/*": "./content/*",
-    "./assets/*": "./assets/*"
+    "./assets/*": "./assets/*",
+    "./skills/*": "./skills/*"
   },
   "scripts": {
     "gen": "node scripts/gen-tokens.mjs",
-    "test": "node scripts/check-tokens.mjs",
+    "test": "node scripts/check-tokens.mjs && node scripts/lint.mjs components",
     "build": "npm run gen && npm test && tsc -p tsconfig.json",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint": "node scripts/lint.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
@@ -43,6 +45,8 @@
     "tokens",
     "components",
     "prompts",
+    "skills",
+    "scripts",
     "content",
     "docs",
     "assets",
@@ -59,5 +63,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "bin": {
+    "hanzo-design-lint": "./scripts/lint.mjs"
   }
 }

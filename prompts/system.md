@@ -12,7 +12,7 @@ and frontier models. Every surface you produce obeys one atom:
 
 ## Foundation
 
-- **Import once.** `@import "@hanzoai/design/styles.css";` gives you every token
+- **Import once.** `@import "@hanzo/design/styles.css";` gives you every token
   as a CSS custom property. Use the variables. Never write a raw hex, rgb, px
   font-size, or magic z-index — if you reach for a literal, there is a token for
   it and you are doing it wrong.

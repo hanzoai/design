@@ -12,7 +12,7 @@ export function Sheet({ open, onOpenChange, side = 'right', width = 380, childre
     ? { left: 0, top: 0, bottom: 0, width, borderRight: '1px solid var(--border-hairline)' }
     : { right: 0, top: 0, bottom: 0, width, borderLeft: '1px solid var(--border-hairline)' }
   return (
-    <div onClick={() => onOpenChange && onOpenChange(false)} style={{position:'fixed',inset:0,zIndex:80,background:'rgb(0 0 0 / .7)'}}>
+    <div onClick={() => onOpenChange && onOpenChange(false)} style={{position:'fixed',inset:0,zIndex:'var(--z-modal)',background:'var(--surface-scrim)'}}>
       <div
         onClick={(e) => e.stopPropagation()}
         style={{position:'absolute',display:'flex',flexDirection:'column',background:'var(--popover)',boxShadow:'var(--shadow-floating)',animation:'hanzo-fade-up var(--duration-base) var(--ease-out)',...pos}}

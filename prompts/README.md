@@ -1,5 +1,10 @@
 # prompts — make an AI build it Hanzo
 
+> **Entry point is `skills/design-system/SKILL.md`**, not this folder. The skill
+> is what chat, hanzo.app and Claude Code load; it points here for the long form
+> and finishes by running `hanzo-design-lint`. Everything below is the reference
+> the skill cites.
+
 Guidance an agent reads *before* generating a Hanzo surface. Two layers, no
 overlap:
 
@@ -20,7 +25,7 @@ place.
 Everything here assumes one import gives you the tokens:
 
 ```css
-@import "@hanzoai/design/styles.css";
+@import "@hanzo/design/styles.css";
 ```
 
 So every rule below can be obeyed with a CSS variable, never a hardcoded hex.

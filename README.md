@@ -6,9 +6,24 @@
 
 The single source of truth for how every Hanzo surface looks — tokens, components, brand assets, and the guidelines that hold them together.
 
-`@hanzoai/design`
+`@hanzo/design`
 
 </div>
+
+## If you are an agent
+
+Read [`skills/design-system/SKILL.md`](skills/design-system/SKILL.md). It is the
+**one** way an AI surface learns this design system — chat, hanzo.app and Claude
+Code all load the same file, so there is a single author and nothing to drift.
+It ends by running the gate below, which is what makes the rules enforceable
+rather than advisory:
+
+```sh
+npx hanzo-design-lint <paths…>
+```
+
+`prompts/` holds the longer material the skill points at. It is reference, not a
+second entry point.
 
 ## Use it
 
@@ -49,8 +64,8 @@ Groups: `colors`, `typography`, `spacing`, `radius`, `elevation`, `motion`, `zIn
 Everything below is expressed as CSS custom properties, so code copies over 1:1 — the semantic names match `hanzo.ai`'s variables exactly.
 
 ```jsx
-import { Button } from "@hanzoai/design/components/core/Button.jsx";
-import { HanzoLogo } from "@hanzoai/design/components/core/HanzoLogo.jsx";
+import { Button } from "@hanzo/design/components/core/Button.jsx";
+import { HanzoLogo } from "@hanzo/design/components/core/HanzoLogo.jsx";
 
 <Button pill>Try Hanzo</Button>
 ```

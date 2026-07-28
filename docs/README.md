@@ -8,7 +8,7 @@ If you remember one thing: **import one file, then reach for a token instead of 
 literal.** Do that and your surface is already 90% on-brand.
 
 ```css
-@import "@hanzoai/design/styles.css";
+@import "@hanzo/design/styles.css";
 ```
 
 ## The map

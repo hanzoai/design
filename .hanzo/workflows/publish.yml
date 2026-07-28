@@ -1,0 +1,51 @@
+name: publish
+
+# Publishes @hanzo/design when the version in package.json changes on main.
+# A version already on the registry is skipped, so re-runs are safe.
+
+on:
+  push:
+    branches: [main]
+    paths: ['package.json']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: hanzo-build-linux-amd64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+      - name: Skip if already published
+        id: check
+        run: |
+          NAME=$(jq -r .name package.json)
+          VER=$(jq -r .version package.json)
+          if curl -fsSL "https://registry.npmjs.org/$NAME/$VER" > /dev/null 2>&1; then
+            echo "$NAME@$VER already on registry; skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      # `build` regenerates the tokens, gates on the suite, then emits dist/ —
+      # one command for all three. dist/ is gitignored, so the checkout carries
+      # none and the `.` export needs this step. corepack takes the pnpm version
+      # from packageManager.
+      - name: Test
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Publish
+        if: steps.check.outputs.skip != 'true'
+        # npm, not pnpm: pnpm publish adds git checks a CI checkout fails.
+        # --no-provenance: a token publish 422s without it.
+        run: npm publish --access public --no-provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

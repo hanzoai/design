@@ -22,7 +22,7 @@ export function HanzoWordmark({ size = 22, label = 'Hanzo AI', variant = 'white'
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, ...style }}>
       <HanzoLogo size={size} variant={variant} />
-      <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: 'var(--tracking-tight)', color: 'var(--text-primary)' }}>{label}</span>
+      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, letterSpacing: 'var(--tracking-tight)', color: 'var(--text-primary)' }}>{label}</span>
     </span>
   )
 }

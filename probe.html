@@ -1,0 +1,55 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="./styles.css">
+<style>
+  main{padding:24px;display:flex;flex-direction:column;gap:20px;max-width:900px}
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+  /* The @hanzo/iam UserMenu shape, painted ONLY from design tokens. */
+  #menu{width:260px;background:var(--surface-1);border:1px solid var(--border);
+        border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+        z-index:var(--z-popover);overflow:hidden}
+  #menu .hd{padding:12px 14px;border-bottom:1px solid var(--border)}
+  #menu .nm{color:var(--text-primary);font-size:var(--text-sm)}
+  #menu .em{color:var(--text-helper);font-size:var(--text-xs)}
+  #menu .it{padding:10px 14px;color:var(--foreground);font-size:var(--text-sm)}
+  #menu .it:hover{background:var(--surface-3)}
+  /* A control whose boundary IS the affordance → --border-strong */
+  #field{width:260px;padding:9px 12px;background:var(--surface-0);
+         border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+         color:var(--foreground);font-size:var(--text-sm);font-family:var(--font-sans)}
+  #tip{padding:6px 10px;background:var(--surface-2);border:1px solid var(--border);
+       border-radius:var(--radius-sm);z-index:var(--z-tooltip);font-size:var(--text-xs)}
+</style></head>
+<body>
+<main>
+  <h1>@hanzo/design token probe</h1>
+  <div class="row">
+    <div id="menu">
+      <div class="hd"><div class="nm">Antje Worring</div><div class="em">a@zoo.ngo</div></div>
+      <div class="it">Account</div><div class="it">Organisation</div><div class="it">Sign out</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <input id="field" value="focus me">
+      <div id="tip">tooltip on the ladder</div>
+    </div>
+  </div>
+</main>
+<script>
+window.__probe = () => {
+  const cs = (el, p) => getComputedStyle(el).getPropertyValue(p).trim()
+  const root = getComputedStyle(document.documentElement)
+  const tok = n => root.getPropertyValue(n).trim()
+  const m = document.getElementById('menu'), f = document.getElementById('field'), t = document.getElementById('tip')
+  return {
+    tokens: Object.fromEntries(['--surface-0','--surface-1','--surface-2','--surface-3','--shadow-lg',
+      '--z-popover','--z-tooltip','--z-dropdown','--ring','--border-strong','--border',
+      '--font-sans','--text-base','--font-size-base','--radius-lg'].map(n=>[n,tok(n)])),
+    menu:  { background: cs(m,'background-color'), border: cs(m,'border-top-width')+' '+cs(m,'border-top-style')+' '+cs(m,'border-top-color'),
+             radius: cs(m,'border-top-left-radius'), shadow: cs(m,'box-shadow'), z: cs(m,'z-index') },
+    field: { border: cs(f,'border-top-width')+' '+cs(f,'border-top-style')+' '+cs(f,'border-top-color'), font: cs(f,'font-family') },
+    tip:   { z: cs(t,'z-index') },
+    body:  { font: cs(document.body,'font-family'), size: cs(document.body,'font-size'), bg: cs(document.body,'background-color') },
+  }
+}
+</script>
+</body></html>

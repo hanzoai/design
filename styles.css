@@ -1,5 +1,8 @@
 /* Hanzo Design System — global entry point. Import THIS one file.
-   Source of truth: hanzo-apps/hanzo.ai (app/globals.css, tailwind.config.ts, DESIGN.md). */
+   Every token group is served here; nothing is authored but left unimported.
+   (`tokens/z.css` went missing from this list once and the whole ladder stopped
+   resolving while still type-checking — see scripts/check-tokens.mjs, which now
+   fails the build if any tokens/*.css is not imported below.) */
 @import url("tokens/fonts.css");
 @import url("tokens/colors.css");
 @import url("tokens/typography.css");
@@ -7,4 +10,5 @@
 @import url("tokens/radius.css");
 @import url("tokens/elevation.css");
 @import url("tokens/motion.css");
+@import url("tokens/z.css");
 @import url("tokens/base.css");

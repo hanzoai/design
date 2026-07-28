@@ -1,18 +1,40 @@
-/* Type scale as RENDERED on hanzo.ai (Tailwind v4 defaults — note that the
-   legacy golden-ratio fontSize block in tailwind.config.ts is NOT loaded under
-   Tailwind v4 without an @config directive; see tokens/spacing.css). */
+/* TIGHT app-first type scale — the compact developer-app register (linear.app /
+   vercel.com / the Codex desktop look), the Hanzo default across chat / app /
+   desktop. Base is 14px, nav 13px, labels 11px; display sizes tightened. Kept in
+   lockstep with @hanzo/brand (styles/variables.css --font-size-* + typography.ts)
+   — the two are the SAME scale, mirrored. A surface/tenant overrides any --text-*
+   on :root to retune density on demand. */
 :root{
-  --text-xs:0.75rem;    --leading-xs:1rem;
-  --text-sm:0.875rem;   --leading-sm:1.25rem;
-  --text-base:1rem;     --leading-base:1.5rem;
-  --text-lg:1.125rem;   --leading-lg:1.75rem;
-  --text-xl:1.25rem;    --leading-xl:1.75rem;
-  --text-2xl:1.5rem;    --leading-2xl:2rem;
-  --text-3xl:1.875rem;  --leading-3xl:2.25rem;
-  --text-4xl:2.25rem;   --leading-4xl:2.5rem;
-  --text-5xl:3rem;      --leading-5xl:1.05;
-  --text-6xl:3.75rem;   --leading-6xl:1;
-  --text-7xl:4.5rem;    --leading-7xl:1;
+  --text-xs:0.6875rem;  --leading-xs:1rem;      /* 11px — eyebrows / section labels */
+  --text-sm:0.8125rem;  --leading-sm:1.15rem;   /* 13px — nav labels, dense body */
+  --text-base:0.875rem; --leading-base:1.35rem; /* 14px — base app text (was 16px) */
+  --text-lg:0.9375rem;  --leading-lg:1.4rem;    /* 15px */
+  --text-xl:1.0625rem;  --leading-xl:1.55rem;   /* 17px */
+  --text-2xl:1.3125rem; --leading-2xl:1.7rem;   /* 21px */
+  --text-3xl:1.625rem;  --leading-3xl:1.95rem;  /* 26px */
+  --text-4xl:2rem;      --leading-4xl:2.25rem;  /* 32px */
+  --text-5xl:2.5rem;    --leading-5xl:1.05;     /* 40px */
+  --text-6xl:3.25rem;   --leading-6xl:1;        /* 52px */
+  --text-7xl:4rem;      --leading-7xl:1;        /* 64px */
+  --text-8xl:5.25rem;   --leading-8xl:1;        /* 84px */
+  --text-9xl:7rem;      --leading-9xl:1;        /* 112px */
+
+  /* The SAME scale under @hanzo/brand's spelling. @hanzo/gui's shell theme and
+     Hanzo Studio address the ramp as --font-size-*; both names are one value, so
+     a component written against either resolves here. --text-* is canonical. */
+  --font-size-xs:var(--text-xs);
+  --font-size-sm:var(--text-sm);
+  --font-size-base:var(--text-base);
+  --font-size-lg:var(--text-lg);
+  --font-size-xl:var(--text-xl);
+  --font-size-2xl:var(--text-2xl);
+  --font-size-3xl:var(--text-3xl);
+  --font-size-4xl:var(--text-4xl);
+  --font-size-5xl:var(--text-5xl);
+  --font-size-6xl:var(--text-6xl);
+  --font-size-7xl:var(--text-7xl);
+  --font-size-8xl:var(--text-8xl);
+  --font-size-9xl:var(--text-9xl);
 
   --weight-normal:400;
   --weight-medium:500;

@@ -14,7 +14,7 @@ const tokensDir = join(root, 'tokens')
 // The token files, in the same order styles.css imports them. base.css is the
 // semantic-alias layer (references other vars) — parsed too, so `--background`
 // etc. are available programmatically.
-const FILES = ['colors', 'typography', 'spacing', 'radius', 'elevation', 'motion', 'z', 'fonts', 'base']
+const FILES = ['colors', 'typography', 'spacing', 'grid', 'radius', 'elevation', 'motion', 'z', 'fonts', 'base']
 
 // group name for each file (the export const); a couple read better renamed.
 const GROUP = { z: 'zIndex' }

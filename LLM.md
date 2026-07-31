@@ -13,11 +13,22 @@ The derivation runs one way and never back:
       -> @hanzo/brand   who a host is, and which mark it gets
         -> @hanzo/design  how anything built for that brand should look
 
-`tokens/*.css` is the source of truth. Nine hand-authored files — colors,
-typography, spacing, radius, elevation, motion, z, fonts, base — and everything
-else is derived from them. `scripts/gen-tokens.mjs` parses all nine in a fixed
-order and emits exactly one artifact, `src/tokens.gen.ts` (221 tokens, 9 groups).
-That file is generated AND committed; never hand-edit it.
+`tokens/*.css` is the source of truth. Ten hand-authored files — colors,
+typography, spacing, grid, radius, elevation, motion, z, fonts, base — and
+everything else is derived from them. `scripts/gen-tokens.mjs` parses all ten in
+a fixed order and emits exactly one artifact, `src/tokens.gen.ts` (232 tokens, 10
+groups). That file is generated AND committed; never hand-edit it.
+
+**spacing vs grid** is the one boundary worth stating, because both are "layout"
+and it would be easy to write a value twice. `spacing.css` owns DISTANCES and the
+field they apply to — the `--space-*` ramp, `--container-*`, `--gutter*`,
+`--section-y*`. `grid.css` owns only what a grid knows that spacing does not:
+how many columns (`--grid-columns: 12`), how far apart (`--grid-gap*`, which
+REFERENCE `--space-*` rather than restating rem values), where it reflows
+(`--breakpoint-*`), and the intrinsic card track (`--grid-card-min`). Nothing is
+declared in both. `--breakpoint-*` deliberately uses the same names AND values as
+Tailwind v4's defaults so the utility layer and the tokens resolve one value, not
+two that happen to agree.
 
 ## How this ships
 

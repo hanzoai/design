@@ -185,6 +185,21 @@ export const spacing = {
   'header-height': '4rem',
 } as const
 
+/** grid tokens (from tokens/grid.css). Values are raw CSS. */
+export const grid = {
+  'grid-columns': '12',
+  'grid-gap': 'var(--space-6)',
+  'grid-gap-tight': 'var(--space-4)',
+  'grid-gap-loose': 'var(--space-8)',
+  'breakpoint-sm': '40rem',
+  'breakpoint-md': '48rem',
+  'breakpoint-lg': '64rem',
+  'breakpoint-xl': '80rem',
+  'breakpoint-2xl': '96rem',
+  'grid-card-min': '18rem',
+  'grid-card-min-wide': '24rem',
+} as const
+
 /** radius tokens (from tokens/radius.css). Values are raw CSS. */
 export const radius = {
   'radius': '0.5rem',
@@ -433,6 +448,17 @@ export const cssVars = {
   '--hero-y': '5rem',
   '--hero-y-lg': '8rem',
   '--header-height': '4rem',
+  '--grid-columns': '12',
+  '--grid-gap': 'var(--space-6)',
+  '--grid-gap-tight': 'var(--space-4)',
+  '--grid-gap-loose': 'var(--space-8)',
+  '--breakpoint-sm': '40rem',
+  '--breakpoint-md': '48rem',
+  '--breakpoint-lg': '64rem',
+  '--breakpoint-xl': '80rem',
+  '--breakpoint-2xl': '96rem',
+  '--grid-card-min': '18rem',
+  '--grid-card-min-wide': '24rem',
   '--radius': '0.5rem',
   '--radius-sm': '0.375rem',
   '--radius-md': '0.5rem',

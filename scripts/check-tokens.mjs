@@ -144,7 +144,11 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   }
 
   const CANVASES = ['background', 'card', 'popover', 'muted', 'secondary', 'surface-card', 'surface-overlay']
-  const GATED = { ring: 3, 'border-strong': 3 }
+  // The gate follows the DUTY, not the name. --border-control is the rung that
+  // draws a control's edge and --ring the focus indicator; those two owe 3:1.
+  // --border / --border-strong are decorative hairlines and owe nothing — that
+  // is exactly why they are allowed to be quiet enough to look like something.
+  const GATED = { ring: 3, 'border-control': 3 }
   for (const [theme, scope] of Object.entries(themes)) {
     for (const [tok, min] of Object.entries(GATED)) {
       let worst = Infinity, where = ''
@@ -157,6 +161,25 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
         ? fail(`--${tok} (${theme}) is ${worst.toFixed(2)}:1 on ${where} — needs ${min}:1`)
         : pass(`--${tok} (${theme}) ${worst.toFixed(2)}:1 worst case (${where})`)
     }
+  }
+
+  // ── 4. every white-alpha token must be restated for the light theme ──────
+  // The opacity ladder does NOT invert. A semantic token whose dark value is
+  // rgb(255 255 255 / a) is white-on-white in `.light` — the border does not
+  // change colour, it stops existing — and nothing renders an error. The raw
+  // ladder itself (--white-*) is exempt: it is a palette, not a semantic token,
+  // and light-theme tokens are expected to restate rather than invert it.
+  {
+    const PALETTE = /^(white|neutral|pure|hanzo)-/
+    const lightKeys = new Set(Object.keys(block(/\.light\s*\{([\s\S]*?)\n\}/)))
+    const leaked = Object.keys(dark).filter((k) => {
+      if (PALETTE.test(k) || lightKeys.has(k)) return false
+      const c = rgb(deref(dark[k], dark))
+      return c && c[3] < 1 && c[0] > 200 && c[1] > 200 && c[2] > 200
+    })
+    leaked.length
+      ? leaked.forEach((k) => fail(`--${k} is white-alpha and has no .light value — it vanishes in the light theme`))
+      : pass(`every white-alpha token is restated in .light`)
   }
 }
 

@@ -14,7 +14,7 @@ const SZ = {
   lg:{height:44,padding:'0 24px',fontSize:'var(--text-sm)'},
   icon:{height:36,width:36,padding:0},
 }
-const HOVER = { primary:'primary', secondary:'secondary', outline:'accent', ghost:'accent', destructive:'destructive', link:'link' }
+const HOVER = { primary:'primary', secondary:'primary', outline:'accent', ghost:'accent', destructive:'destructive', link:'link' }
 
 export function Button({ variant = 'primary', size = 'default', pill = false, disabled, style, children, ...rest }) {
   const [hover, setHover] = React.useState(false)
@@ -23,7 +23,6 @@ export function Button({ variant = 'primary', size = 'default', pill = false, di
   const h = HOVER[variant]
   const hoverStyle = !hover || disabled ? null
     : h === 'primary' || h === 'destructive' ? { opacity: 0.9 }
-    : h === 'secondary' ? { background: 'var(--neutral-800)' }
     : h === 'accent' ? { background: 'var(--accent)', color: 'var(--text-primary)' }
     : { textDecoration: 'underline' }
   return (

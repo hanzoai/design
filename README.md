@@ -127,3 +127,28 @@ Tokens track `hanzo.ai` (`app/globals.css`, `tailwind.config.ts`, `DESIGN.md`) a
 ## License
 
 BSD-3-Clause. Brand marks (the Hanzo logo, partner and provider logos) are the property of their respective owners and are provided for identification.
+
+## Using it in a Tailwind app
+
+One import, after Tailwind's:
+
+```css
+@import "tailwindcss";
+@import "@hanzo/design/tailwind.css";
+```
+
+That carries the tokens **and** maps them onto Tailwind's namespace, so
+`bg-background`, `text-muted-foreground` and `border-border` resolve to the
+system's values. There is no `@theme` block to hand-write and keep in sync.
+
+Not using Tailwind? `@import "@hanzo/design/styles.css"` is the same tokens
+without the bridge.
+
+### Two rules, and the build enforces both
+
+- **Import it after `tailwindcss`.** `@theme` extends the framework, so it has
+  to follow it.
+- **Don't re-declare tokens in your app.** An app that states its own palette
+  drifts from every other surface, and any token it forgets resolves to nothing
+  — `border-border` becomes `currentColor`, which paints a white hairline on
+  black and reads as a design choice rather than a missing line.

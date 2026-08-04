@@ -1,23 +1,38 @@
 /* Minimal element defaults so specimen cards and kits inherit the brand without
-   a utility framework. Components carry their own styles inline. */
-*{box-sizing:border-box;border-color:var(--border)}
-html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
-/* Each font-family carries the stack as a literal fallback. --font-sans lives in
-   tokens/fonts.css, which a surface may legitimately import separately; without
-   the fallback an unresolved var() makes font-family invalid and the UA drops to
-   its SERIF default — the whole console silently rendered in Times. */
-body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings)}
-h1,h2,h3,h4{margin:0;font-family:var(--font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));letter-spacing:var(--tracking-tight);color:var(--text-primary)}
-p{margin:0;text-wrap:pretty}
-code,pre,kbd{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
-a{color:var(--text-primary);text-decoration:none;text-underline-offset:4px;transition:color var(--duration-fast) var(--ease-out)}
-/* Underline is the accessible affordance for a link in RUNNING TEXT and a visual
-   bug everywhere else: nav items, cards and anchor-buttons are all <a> too, so a
-   blanket `a:hover` underlined every one of them on every surface that imports
-   these tokens. Scope it to the elements that actually carry prose; a link that
-   is a component states its own hover. The old rule also re-set `color` to the
-   value `a` already has — a no-op that only served to outrank a component's own
-   hover colour. */
-:is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover{text-decoration:underline}
-:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
-::selection{background:var(--white-20);color:#fff}
+   a utility framework. Components carry their own styles inline.
+
+   EVERYTHING HERE IS LAYERED, and that is the most important line in the file.
+   A rule outside a cascade layer beats a rule inside one no matter how specific
+   the loser is — so an unlayered `a{color:...}` here outranked EVERY Tailwind
+   text utility on every anchor, on every surface that imports these tokens. A
+   white-on-white primary button is what that looks like: `text-neutral-950` on
+   an anchor, silently overridden to --text-primary, invisible on its own white
+   fill, and reading as a rendering glitch rather than a cascade bug.
+
+   The same trap already bit `text-decoration` here once (see the a:hover note
+   below). It was fixed by deleting that one declaration, which left the identical
+   defect in `color` untouched. Layering fixes the whole class: these are
+   DEFAULTS, and a default must lose to anything an app states deliberately. */
+@layer base {
+  *{box-sizing:border-box;border-color:var(--border)}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+  /* Each font-family carries the stack as a literal fallback. --font-sans lives in
+     tokens/fonts.css, which a surface may legitimately import separately; without
+     the fallback an unresolved var() makes font-family invalid and the UA drops to
+     its SERIF default — the whole console silently rendered in Times. */
+  body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings)}
+  h1,h2,h3,h4{margin:0;font-family:var(--font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));letter-spacing:var(--tracking-tight);color:var(--text-primary)}
+  p{margin:0;text-wrap:pretty}
+  code,pre,kbd{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
+  a{color:var(--text-primary);text-decoration:none;text-underline-offset:4px;transition:color var(--duration-fast) var(--ease-out)}
+  /* Underline is the accessible affordance for a link in RUNNING TEXT and a visual
+     bug everywhere else: nav items, cards and anchor-buttons are all <a> too, so a
+     blanket `a:hover` underlined every one of them on every surface that imports
+     these tokens. Scope it to the elements that actually carry prose; a link that
+     is a component states its own hover. The old rule also re-set `color` to the
+     value `a` already has — a no-op that only served to outrank a component's own
+     hover colour. */
+  :is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover{text-decoration:underline}
+  :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  ::selection{background:var(--white-20);color:#fff}
+}

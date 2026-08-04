@@ -1,7 +1,7 @@
 ---
 name: design-system
 description: "Use whenever you generate, edit, or review a Hanzo user interface — a page, component, screen, email, or any code change touching colour, type, spacing, elevation, motion, or stacking order. Use it when PLANNING UI work too, so the plan names tokens rather than values. Teaches the Hanzo token layer (@hanzo/design, derived from @hanzo/brand plus @hanzo/logo) and runs the linter that proves generated code actually reaches it. Triggers — build a page, add a component, style, theme, dark mode, colour, hex, palette, font size, spacing, padding, z-index, modal, dropdown, toast, button, card, dialog, icon, make it look Hanzo, brand, design review."
-license: BSD-3-Clause
+license: MIT OR Apache-2.0
 ---
 
 # The Hanzo design system

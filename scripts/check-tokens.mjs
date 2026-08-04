@@ -59,6 +59,47 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
     : pass(`all ${urls.length} asset url()s resolve from the package root`)
 }
 
+// ── 1a. the bundles must PARSE ───────────────────────────────────────────
+// 0.4.2 and 0.4.3 shipped a stray `*/` in styles.css AND tailwind.css: an
+// edit added prose to the end of a comment that was already closed, so a
+// paragraph of English sat in the stylesheet as raw CSS, terminated by a
+// second `*/`. Browsers recover from that — they skip to the next thing that
+// looks like a rule and carry on — so the whole kit rendered correctly in
+// Chromium at three widths in both themes, and every screenshot looked right.
+// PostCSS does not recover. It throws, which means those two versions could
+// not be built against by any Vite/Next/Tailwind consumer at all.
+//
+// The lesson is specific: RENDERING IS NOT PARSING. A visual check cannot see
+// this class of defect, because the browser's error recovery is what hides it.
+// So it is checked structurally, here, on the artifacts a consumer receives.
+//
+// Done by hand rather than with postcss because the defect is lexical and the
+// scan is fifteen lines — CSS comments do not nest, so one left-to-right pass
+// that skips comment bodies finds every stray terminator and every unclosed
+// opener. A parser dependency would be a heavier answer to a smaller question.
+{
+  for (const f of ['styles.css', 'tailwind.css']) {
+    const s = read(join(root, f))
+    let i = 0, opened = 0, strays = [], unterminated = null
+    while (i < s.length - 1) {
+      if (s[i] === '/' && s[i + 1] === '*') {
+        opened++
+        const j = s.indexOf('*/', i + 2)
+        if (j < 0) { unterminated = s.slice(0, i).split('\n').length; break }
+        i = j + 2
+        continue
+      }
+      if (s[i] === '*' && s[i + 1] === '/') { strays.push(s.slice(0, i).split('\n').length); i += 2; continue }
+      i++
+    }
+    const braces = [...s].reduce((n, c) => n + (c === '{') - (c === '}'), 0)
+    if (unterminated !== null) fail(`${f}: unterminated /* at line ${unterminated}`)
+    else if (strays.length) fail(`${f}: stray */ outside any comment at line ${strays.join(', ')} — a consumer's PostCSS build throws here`)
+    else if (braces !== 0) fail(`${f}: ${Math.abs(braces)} unbalanced ${braces > 0 ? '{' : '}'}`)
+    else pass(`${f} is lexically sound — ${opened} comments closed, braces balanced`)
+  }
+}
+
 // ── 1b. the Tailwind bridge is complete and self-contained ───────────────
 // An app should write ONE import and get working utilities. Each thing checked
 // here failed silently in production before it was checked: a missing slot

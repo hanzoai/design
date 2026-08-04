@@ -11,7 +11,7 @@ export function Dialog({ open, onOpenChange, children }) {
   return (
     <div
       onClick={() => onOpenChange && onOpenChange(false)}
-      style={{position:'fixed',inset:0,zIndex:'var(--z-modal)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,background:'var(--surface-scrim)',backdropFilter:'blur(4px)',animation:'hanzo-fade-up var(--duration-fast) var(--ease-out)'}}
+      style={{position:'fixed',inset:0,zIndex:'var(--z-modal)',display:'flex',alignItems:'center',justifyContent:'center',padding:24,background:'var(--surface-scrim)',backdropFilter:'blur(8px) saturate(140%)',animation:'hanzo-fade-up var(--duration-fast) var(--ease-out)'}}
     >
       {children}
     </div>
@@ -22,7 +22,7 @@ export function DialogContent({ width = 480, style, children, ...rest }) {
   return (
     <div
       role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}
-      style={{width:'100%',maxWidth:width,maxHeight:'85vh',overflowY:'auto',padding:24,display:'flex',flexDirection:'column',gap:16,background:'var(--popover)',color:'var(--popover-foreground)',border:'1px solid var(--border)',borderRadius:'var(--radius-xl)',boxShadow:'var(--shadow-floating)',...style}}
+      style={{width:'100%',maxWidth:width,maxHeight:'85vh',overflowY:'auto',padding:24,display:'flex',flexDirection:'column',gap:16,background:'var(--popover)',color:'var(--popover-foreground)',border:'1px solid var(--border-strong)',borderRadius:'var(--radius-xl)',boxShadow:'var(--edge-highlight), var(--shadow-floating)',animation:'hanzo-zoom-in var(--duration-base) var(--ease-emphasis)',...style}}
       {...rest}
     >{children}</div>
   )

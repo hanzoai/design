@@ -19,7 +19,7 @@ export function DropdownMenu({ align = 'right', hover = false, trigger, style, c
       <span onClick={() => setOpen((v) => !v)} style={{display:'inline-flex'}}>{trigger}</span>
       {open && (
         <div style={{position:'absolute',top:'100%',[align]:0,paddingTop:12,zIndex:'var(--z-dropdown)',minWidth:208}}>
-          <div style={{display:'flex',flexDirection:'column',padding:8,background:'var(--surface-overlay)',border:'1px solid var(--border)',borderRadius:'var(--radius-xl)',boxShadow:'var(--shadow-floating)',backdropFilter:'blur(16px)',animation:'hanzo-fade-down var(--duration-fast) var(--ease-out)'}}>
+          <div style={{display:'flex',flexDirection:'column',padding:6,background:'var(--surface-overlay)',border:'1px solid var(--border-strong)',borderRadius:'var(--radius-lg)',boxShadow:'var(--edge-highlight), var(--shadow-floating)',backdropFilter:'blur(20px) saturate(180%)',animation:'hanzo-zoom-in var(--duration-fast) var(--ease-emphasis)'}}>
             {children}
           </div>
         </div>
@@ -33,16 +33,20 @@ export function DropdownMenuItem({ desc, style, children, ...rest }) {
   return (
     <a
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{display:'block',padding: desc ? '10px 12px' : '8px 12px',borderRadius:'var(--radius-sm)',background: hover ? 'var(--glass)' : 'transparent',cursor:'pointer',textDecoration:'none',transition:'background-color var(--duration-fast) var(--ease-out)',...style}}
+      style={{display:'block',padding: desc ? '10px 12px' : '8px 12px',borderRadius:'var(--radius-sm)',background: hover ? 'var(--glass-strong)' : 'transparent',cursor:'pointer',textDecoration:'none',transition:'background-color var(--duration-fast) var(--ease-out)',...style}}
       {...rest}
     >
-      <span style={{display:'block',fontSize:'var(--text-sm)',fontWeight:'var(--weight-medium)',color:'var(--neutral-100)'}}>{children}</span>
-      {desc && <span style={{display:'block',marginTop:2,fontSize:'var(--text-xs)',color:'var(--neutral-500)'}}>{desc}</span>}
+      {/* --text-primary / --text-tertiary, not --neutral-100 / --neutral-500.
+          The neutral ladder is a PALETTE: it does not invert, so a menu item
+          painted from it rendered #f5f5f5 text on the light theme's #ffffff
+          popover — the item did not change colour, it stopped being legible. */}
+      <span style={{display:'block',fontSize:'var(--text-sm)',fontWeight:'var(--weight-medium)',color:'var(--text-primary)'}}>{children}</span>
+      {desc && <span style={{display:'block',marginTop:2,fontSize:'var(--text-xs)',lineHeight:'var(--leading-normal)',color:'var(--text-tertiary)'}}>{desc}</span>}
     </a>
   )
 }
 export function DropdownMenuLabel({ style, children, ...rest }) {
-  return <span style={{padding:'6px 12px',fontSize:'var(--text-xs)',fontWeight:'var(--weight-medium)',textTransform:'uppercase',letterSpacing:'var(--tracking-wide)',color:'var(--neutral-500)',...style}} {...rest}>{children}</span>
+  return <span style={{padding:'6px 12px',fontSize:'var(--text-xs)',fontWeight:'var(--weight-semibold)',textTransform:'uppercase',letterSpacing:'var(--tracking-widest)',color:'var(--text-tertiary)',...style}} {...rest}>{children}</span>
 }
 export function DropdownMenuSeparator({ style }) {
   return <span style={{height:1,margin:'6px 4px',background:'var(--border)',...style}} />

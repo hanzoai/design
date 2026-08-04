@@ -79,59 +79,82 @@
   --popover:#0f0f0f;
   --popover-foreground:#fafafa;
   --primary:#fafafa;
-  --primary-hover:#d4d4d4;
+  /* A 5% step, not the 16% this used to be. A filled button's fill is already
+     the top of the ink ramp, so the only directions available on hover are
+     "dimmer" and "brighter-around-the-edges" — and a 16% drop reads as the
+     button going DISABLED under the cursor, which is the one thing a hover must
+     never look like. The step is now small enough to register as pressure while
+     --bloom does the actual work of lighting it up. */
+  --primary-hover:#e5e5e5;
   --primary-foreground:#0a0a0a;
   --secondary:#262626;
+  /* One rung up, so a secondary button HAS a hover. It previously resolved to
+     --surface-3, which is --secondary — the same value it starts at. */
+  --secondary-hover:#333333;
   --secondary-foreground:#fafafa;
   --muted:#171717;
   --muted-foreground:#a3a3a3;
   --accent:#262626;
   --accent-foreground:#fafafa;
-  --destructive:#666666;
+  /* Destructive is the ONE place the monochrome rule already yields, and it was
+     yielding in only half the system: a field that fails validation draws
+     --state-error (#ef4444, which DESIGN.md §2.4 lists as permitted precisely
+     for "destructive / blocking error"), while the button that performs the
+     destruction drew #666666 — a mid-grey that is indistinguishable from a
+     disabled control. "Delete everything" and "you cannot click this" must not
+     be the same colour. So the two converge on the one token that already
+     names this meaning, and the ramp stays monochrome everywhere else. */
+  --destructive:var(--state-error);
+  --destructive-hover:#dc2626;   /* red-600 — deepens under the cursor */
   --destructive-foreground:#fafafa;
 
   /* ——— boundaries ———
-     THREE tiers, and the split is the whole point. The first two are DECORATIVE:
-     they separate content, WCAG imposes no ratio on them, and they must stay
-     quiet. The third is PERCEIVABLE: it is the edge that IS the affordance.
+     ONE ladder, cut from alpha, graded by duty. Every rung is a rung of the
+     opacity ladder above, so every boundary composites correctly on the page,
+     on a card, and inside a popover — and every rung is the reference's own
+     measured value, not a rounded ramp:
 
-       --border          the hairline. Every card, panel, divider, list row.
-       --border-strong   the SAME hairline, one step up. Hover, active, emphasis.
-       --border-control  a control's edge — input, select, textarea, checkbox,
-                         switch. Must clear 3:1 on every surface in both themes
-                         (WCAG 1.4.11); check-tokens.mjs pins it.
+       --border          .10  the hairline. Cards, panels, dividers, list rows.
+       --border-strong   .16  the same hairline, one step up. Hover, emphasis.
+       --border-control  .15  a control's resting edge — input, select, textarea.
+       --border-focus    .22  that control, focused.
+       --border-selected .30  the thing that is currently CHOSEN — the active
+                              tab, the current tile, the featured plan.
 
-     Before this split there were only two rungs and they were an octave apart:
-     --border at #1f1f1f (1.27:1, invisible on anything lifted) and
-     --border-strong at --neutral-500 (4.43:1). Nothing sat between, so every
-     surface that wanted a border it could actually SEE reached for the control
-     rung — and a 1px mid-grey box around a card on near-black is a wireframe.
-     That is the "garish outlines" complaint, and it is fixed by having a middle.
+     The previous release cut the last three from the NEUTRAL ladder instead,
+     because a boundary that clears WCAG 1.4.11's 3:1 on a near-black ground IS
+     a mid-grey and no amount of tuning changes that. It is true, and it is also
+     what a wireframe looks like: a 1px #737373 box around every field, four
+     times heavier than the hairline beside it, so a form read as a debug
+     overlay rather than a surface. Aesthetics decided it — the reference draws
+     an input at rgb(255 255 255 / .15) and a focused one at .22 (sidebar.css
+     --input-border / .composer-box:focus-within), and that is what ships here.
 
-     A boundary that is WCAG-perceivable on a near-black ground IS a mid-grey;
-     that cannot be tuned away. So it is not tuned away — it is NAMED, so it can
-     only be spent where it is owed. "strong" is a degree word and will always be
-     read as one; "control" is a duty.
-
-     Which ladder a boundary is cut from follows from that, and is the whole
-     rule: DECORATIVE edges come off the ALPHA ladder, because they owe quiet
-     and they must composite over whatever surface they land on. CONTROL edges
-     come off the NEUTRAL ladder, because they owe a contrast ratio, and a ratio
-     you can only meet at a fixed value is not something to express as alpha.
-     --border-focus is therefore one NEUTRAL rung above --border-control, not an
-     alpha step: a focused field has to read brighter than a resting one, and
-     the resting one already sits at the WCAG floor. */
+     What replaces the ratio is the FOCUS INDICATOR, which is the thing a
+     keyboard user actually navigates by and the one boundary still pinned at
+     3:1 (--ring, below). A resting edge is an affordance; a focus ring is a
+     position. Only the second one is load-bearing when you cannot see well, and
+     spending the contrast budget there rather than on all four edges of every
+     idle field is what lets the system be quiet AND findable at once. */
   --border:var(--white-10);
   --border-strong:var(--white-16);
-  --border-control:var(--neutral-500);   /* 4.43:1 worst case — see --ring */
-  --border-focus:var(--neutral-400);     /* one rung up: the field is focused  */
-  --input:var(--border-control);         /* shadcn `border-input` — a control  */
+  --border-control:var(--white-15);      /* sidebar.css --input-border           */
+  --border-focus:var(--white-22);        /* .composer-box:focus-within           */
+  --border-selected:var(--white-30);     /* the current tab / tile / plan        */
+  --input:var(--border-control);         /* shadcn `border-input` — a control    */
   /* A focus indicator is a NON-TEXT CONTRAST target: WCAG 2.4.11/1.4.11 require
-     3:1 against every surface it can land on. --neutral-500 is the only rung on
-     this ladder that clears 3:1 on all of them — #0a0a0a, #0f0f0f, #171717,
-     #262626, AND the light theme's #ffffff/#fafafa — so one value serves both
-     themes. (Was #333333 = 1.66:1 on --background: not a focus indicator.) */
-  --ring:var(--neutral-500);
+     3:1 against every surface it can land on, and unlike a resting edge it is
+     worth the loudness — it is transient, it only appears on keyboard focus,
+     and it is the whole of how a keyboard user knows where they are.
+     --white-40 clears it on every canvas in both themes precisely BECAUSE it is
+     alpha: on a lifted surface the ring lifts with it (3.77:1 on #0a0a0a,
+     3.66:1 on #262626), which a fixed grey cannot do. */
+  --ring:var(--white-40);
+  /* The soft halo that sits outside the ring — the reference's
+     `box-shadow: 0 0 0 2px rgb(255 255 255 / .06)` on a focused composer. It
+     carries no ratio; it is what makes focus read as designed rather than as a
+     browser default. Spent through --ring-focus (tokens/elevation.css). */
+  --ring-halo:var(--white-10);
   --brand:#e4e4e7;
   --brand-foreground:#09090b;
   --brand-muted:#a3a3a3;
@@ -146,12 +169,27 @@
   --glass:var(--white-05);
   --glass-strong:var(--white-08);
 
-  /* ——— surface recipes (card fills used across hanzo.ai) ——— */
+  /* ——— surface recipes ———
+     A card has to be a SURFACE, which means you have to be able to see that it
+     is not the page. These were cut from neutral-900 (#171717) at .4/.5/.8, and
+     at .5 that composites to #101010 on a #0a0a0a ground — six levels above the
+     page, which is not a surface, it is a very slightly different black. Three
+     cards side by side then read as one flat field with hairlines ruled across
+     it, and no amount of shadow fixes it, because you cannot cast a shadow onto
+     black.
+
+     Cut from neutral-800 (#262626) instead, they land on 14 / 18 / 1f — the
+     reference's own panel (#171717 on a #0f0f0f container) with room either
+     side of it. They stay ALPHA so a card nested in a popover still lifts off
+     its parent rather than punching a hole in it; that is the whole reason
+     these are recipes and not just --surface-* rungs. */
   --surface-page:var(--background);
-  --surface-card:rgb(23 23 23 / .5);        /* bg-neutral-900/50 — grid tiles */
-  --surface-card-emphasis:rgb(23 23 23 / .8);/* bg-neutral-900/80 — featured   */
-  --surface-card-quiet:rgb(23 23 23 / .4);   /* bg-neutral-900/40 — story cards */
-  --surface-overlay:rgb(10 10 10 / .95);     /* dropdown / popover panels       */
+  --surface-card:rgb(38 38 38 / .5);         /* -> #181818 on the page          */
+  --surface-card-emphasis:rgb(38 38 38 / .75);/* -> #1f1f1f — featured          */
+  --surface-card-quiet:rgb(38 38 38 / .35);  /* -> #141414 — story cards        */
+  /* A floating panel that is the SAME colour as the page is not floating. This
+     was rgb(10 10 10 / .95) — the page, at 95% of the page. */
+  --surface-overlay:rgb(23 23 23 / .92);     /* dropdown / popover panels       */
   --surface-header:rgb(0 0 0 / .7);          /* fixed nav, with backdrop blur   */
   --surface-scrim:rgb(0 0 0 / .8);           /* the dialog / sheet backdrop     */
 
@@ -203,22 +241,30 @@
   --primary-hover:#262626;
   --primary-foreground:#fafafa;
   --secondary:#ededed;
+  --secondary-hover:#e0e0e0;
   --secondary-foreground:#0a0a0a;
   --muted:#f5f5f5;
   --muted-foreground:#525252;
   --accent:#ededed;
   --accent-foreground:#0a0a0a;
-  --destructive:#999999;
+  --destructive:var(--state-error);
+  --destructive-hover:#dc2626;
   --destructive-foreground:#ffffff;
   --border:rgb(0 0 0 / .10);
   --border-strong:rgb(0 0 0 / .16);
-  --border-control:var(--neutral-500);  /* 4.74:1 on #ffffff — conformant here too */
-  --border-focus:var(--neutral-600);    /* one rung DOWN — darker reads as brighter here */
+  --border-control:rgb(0 0 0 / .15);
+  /* Focus and selection are pushed further here than the .22/.30 they sit at in
+     dark. Black-on-white at a given alpha reads FAINTER than white-on-black at
+     the same alpha — .22 black on #ffffff measures 1.69:1 where .22 white on
+     #0a0a0a measures 1.97:1 — so mirroring the number would quietly make the
+     light theme's focus state the weakest state in the system. */
+  --border-focus:rgb(0 0 0 / .32);
+  --border-selected:rgb(0 0 0 / .42);
   --input:var(--border-control);
-  /* Same rung as dark: #d4d4d4 measured 1.48:1 on white and could not carry a
-     focus indicator either. --neutral-500 is 4.74:1 on #ffffff / 4.38:1 on
-     #f5f5f5, so ONE value is conformant in both themes. */
-  --ring:var(--neutral-500);
+  /* Same duty, same 3:1 floor, opposite direction: .50 black is 3.98:1 on
+     #ffffff and 3.67:1 on #f5f5f5. */
+  --ring:rgb(0 0 0 / .5);
+  --ring-halo:rgb(0 0 0 / .07);
   --black:#0a0a0a;
   --white:#ffffff;
   --selection:rgb(0 0 0 / .16);
@@ -475,14 +521,49 @@
 }
 
 /* ── tokens/elevation.css ─────────────────────────────────────── */
-/* Hanzo barely uses shadow: on black, elevation reads as a hairline border plus
-   a wide, very dark drop. Only two levels ship (Tailwind's shadow-2xl for
-   floating surfaces) plus the ambient radial glow used behind heroes. */
+/* Elevation on a near-black ground is NOT a drop shadow. A dark blur on a dark
+   page is nothing — you cannot cast a shadow onto black — which is why a system
+   that ships only `box-shadow` reads flat no matter how heavy the alphas get.
+
+   What actually lifts a surface here is LIGHT, and it arrives in three parts:
+
+     1. a hairline EDGE            (tokens/colors.css --border)
+     2. an inset top HIGHLIGHT     (--edge-highlight, below)
+     3. a wide, very dark DROP     (--shadow-*)
+
+   (2) is the one that was missing and the one that does most of the work: a 1px
+   inset white line along the top edge reads as the surface catching the light
+   from above, and it is the whole difference between a panel that sits ON the
+   page and a rectangle that is merely a different colour than the page. The
+   reference spends it on its login card (`inset 0 1px 0 rgb(255 255 255 / .05)`)
+   and it is the single cheapest premium signal available on dark UI.
+
+   They are separate tokens rather than one baked shadow because a component
+   composes the ones it needs — `box-shadow: var(--edge-highlight), var(--shadow-lg)`
+   — and a card that wants the highlight without the drop should not have to
+   accept both. */
 :root{
   --shadow-none:none;
-  --shadow-floating:0 25px 50px -12px rgb(0 0 0 / .25);  /* shadow-2xl: composer, dropdowns, mega panel */
+  /* The floating surface: dropdowns, dialogs, sheets, the composer. Wide, soft,
+     and pushed well down. It was Tailwind's `shadow-2xl` at .25 alpha, which is
+     invisible on #0a0a0a — so the surfaces that float highest had the weakest
+     drop in the system while the t-shirt ramp below was correctly tuned. */
+  --shadow-floating:0 24px 60px -16px rgb(0 0 0 / .75);
   --shadow-inset-hairline:inset 0 0 0 1px var(--white-10);
-  --ring-focus:0 0 0 2px var(--ring);
+
+  /* ——— the light ——— */
+  /* The top edge, catching light. Add it to any raised surface. */
+  --edge-highlight:inset 0 1px 0 0 rgb(255 255 255 / .10);
+  /* The bloom around a LIT action on hover — a filled primary button, the send
+     key. Monochrome brand: this is where "alive" comes from instead of a hue,
+     and it is the whole hover signal on a fill that is already at the top of
+     the ink ramp. It was .10, which is invisible: a white glow has to compete
+     with the white object casting it, so the alpha that reads around a WHITE
+     button is far higher than the one that reads around a dark one. */
+  --bloom:0 0 24px -2px rgb(255 255 255 / .28);
+  /* The focus halo: soft, outside the ring, carrying no ratio of its own. This
+     was `0 0 0 2px var(--ring)` — a second hard ring around the hard ring. */
+  --ring-focus:0 0 0 3px var(--ring-halo);
 
   /* The t-shirt ramp. Named by size rather than by role, because that is how
      every component library already asks for a shadow (and how @hanzo/brand
@@ -500,11 +581,47 @@
   --glow-hero-blur:120px;
   /* Card top-corner sheen used on the story cards. */
   --sheen-card:radial-gradient(120% 120% at 80% 0%,rgb(255 255 255 / .08) 0%,transparent 55%); /* @kind color */
+  /* The panel's top hairline, brightest at the centre and dissolving before it
+     reaches either corner — so an edge never terminates in a hard stop. One of
+     the two details that make the reference's panels look machined rather than
+     drawn (sidebar.css .panel::before). Paint it on a 1px-tall ::before. */
+  --sheen-edge:linear-gradient(90deg,transparent,rgb(255 255 255 / .14) 50%,transparent); /* @kind color */
   /* Chrome text: the canonical headline gradient. Never a saturated rainbow. */
   --gradient-chrome:linear-gradient(to right,#ffffff,var(--white-80),var(--white-60));
   --gradient-chrome-2:linear-gradient(to right,#ffffff,var(--neutral-500));
   /* Section-top protection gradient (hero overlays). */
   --gradient-protect:linear-gradient(to bottom,var(--white-10),transparent);
+}
+
+/* Light theme — the same three parts, redistributed.
+   On white the order of work inverts: the DROP does almost all of it and the
+   inset highlight does none, because a white line on a white card is nothing.
+   Every token below is one whose dark value is white — i.e. one that silently
+   stops existing in `.light` unless it is restated here. check-tokens.mjs
+   scans this file for exactly that omission.
+
+   --edge-highlight is `inset 0 0 0 0 transparent` rather than `none` on
+   purpose: components compose these — `box-shadow: var(--edge-highlight),
+   var(--shadow-lg)` — and `none` is not a legal layer in a comma list, so the
+   obvious spelling would invalidate the whole declaration and take the drop
+   shadow down with it. A zero-size transparent shadow composes to nothing and
+   costs nothing. */
+.light{
+  --shadow-floating:0 24px 60px -16px rgb(0 0 0 / .18);
+  --shadow-inset-hairline:inset 0 0 0 1px rgb(0 0 0 / .10);
+  --edge-highlight:inset 0 0 0 0 transparent;
+  --bloom:0 6px 20px -4px rgb(0 0 0 / .18);
+  --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .06);
+  --shadow:0 1px 3px 0 rgb(0 0 0 / .08), 0 1px 2px -1px rgb(0 0 0 / .06);
+  --shadow-md:0 4px 6px -1px rgb(0 0 0 / .08), 0 2px 4px -2px rgb(0 0 0 / .06);
+  --shadow-lg:0 10px 15px -3px rgb(0 0 0 / .09), 0 4px 6px -4px rgb(0 0 0 / .07);
+  --shadow-xl:0 20px 25px -5px rgb(0 0 0 / .10), 0 8px 10px -6px rgb(0 0 0 / .08);
+  --glow-hero:radial-gradient(circle,rgb(0 0 0 / .06) 0%,transparent 68%);
+  --sheen-card:radial-gradient(120% 120% at 80% 0%,rgb(0 0 0 / .04) 0%,transparent 55%);
+  --sheen-edge:linear-gradient(90deg,transparent,rgb(0 0 0 / .08) 50%,transparent);
+  --gradient-chrome:linear-gradient(to right,#0a0a0a,rgb(10 10 10 / .8),rgb(10 10 10 / .6));
+  --gradient-chrome-2:linear-gradient(to right,#0a0a0a,var(--neutral-500));
+  --gradient-protect:linear-gradient(to bottom,rgb(0 0 0 / .10),transparent);
 }
 
 /* ── tokens/motion.css ─────────────────────────────────────── */
@@ -516,8 +633,17 @@
   --duration-slow:400ms; /* @kind other */   /* hero element entry           */
   --duration-slower:500ms; /* @kind other */ /* section entry                */
   --duration-glow:9s; /* @kind other */      /* ambient radial breathe       */
+  --duration-press:90ms; /* @kind other */   /* the press-down on :active     */
   --ease-out:cubic-bezier(0,0,0.2,1); /* @kind other */
   --ease-in-out:cubic-bezier(0.4,0,0.2,1); /* @kind other */
+  /* The entrance curve. Nearly all of the distance is covered in the first
+     third and it settles without overshooting, so a panel arrives DECIDED
+     rather than drifting in — the difference between 300ms that feels
+     immediate and 300ms that feels slow. Use it for anything that appears
+     (menus, dialogs, sheets, toasts); --ease-out stays the curve for a state
+     change on something already on screen. It is not a spring: this system has
+     no bounce anywhere. */
+  --ease-emphasis:cubic-bezier(0.16,1,0.3,1); /* @kind other */
   --stagger:60ms; /* @kind other */          /* per-element delay in a group */
   --entry-rise:16px;       /* hero y-offset                */
   --entry-rise-lg:24px;    /* card y-offset                */
@@ -526,6 +652,12 @@
 @keyframes hanzo-fade-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes hanzo-fade-down{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes hanzo-slide-up-fade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* The entrance for anything that appears OVER the page — dialog, sheet, command
+   palette. It arrives from very slightly small and very slightly low, which is
+   what reads as "came forward" rather than "was toggled on". 3% and 8px: any
+   more and it is an animation you notice, which is the failure mode. Pair it
+   with --ease-emphasis. */
+@keyframes hanzo-zoom-in{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
 @keyframes hanzo-glow{0%,100%{transform:scale(1);opacity:.45}50%{transform:scale(1.08);opacity:.65}}
 @keyframes hanzo-pulse-dot{0%,100%{opacity:1}50%{opacity:.35}}
 
@@ -666,7 +798,19 @@
                background-color var(--duration-fast) var(--ease-out),
                border-color var(--duration-fast) var(--ease-out),
                box-shadow var(--duration-fast) var(--ease-out),
-               opacity var(--duration-fast) var(--ease-out);
+               opacity var(--duration-fast) var(--ease-out),
+               transform var(--duration-press) var(--ease-out);
+  }
+
+  /* ——— the press ———
+     A button that moves under the finger is the cheapest "this is a real
+     control" signal there is, and its absence is most of why a correct-looking
+     button still feels like a picture of a button. 2% over 90ms — small enough
+     that it reads as pressure rather than as animation, and it is the
+     reference's own value (.auth-signin-btn:active). Inputs are excluded: a
+     text field does not depress, and scaling one mid-caret is a glitch. */
+  :where(button,[role=button],a[role=button],summary):active:not(:disabled){
+    transform:scale(.98);
   }
 
   /* ——— controls ———
@@ -679,11 +823,29 @@
   :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){
     background:var(--surface-2);
     border:1px solid var(--border-control);
-    border-radius:var(--radius-sm);
+    /* --radius-md (8px), not --radius-sm (6px). On a 36px control the two are
+       one step apart and it is the step between "boxy" and "considered";
+       --radius-sm keeps its job on genuinely small parts — badges, chips, menu
+       rows — where 8px would look bubbly. The reference draws its composer and
+       its buttons at 8-10px and nothing at 6px except 22px chips. */
+    border-radius:var(--radius-md);
     padding:0 var(--space-3);
   }
   :where(textarea){padding:var(--space-2) var(--space-3);resize:vertical}
-  :where(input,select,textarea):focus-visible{border-color:var(--border-focus)}
+  /* ——— focus, on a control ———
+     Not the generic ring. A field already HAS an edge, so focus brightens that
+     edge (.15 -> .22) and adds a soft halo just outside it — which is what the
+     reference does (.composer-box:focus-within) and what separates a focused
+     field from a browser default. The generic `outline` is suppressed here
+     precisely because it would draw a second, harder box around this one. */
+  :where(input,select,textarea):focus-visible{
+    outline:none;
+    border-color:var(--border-focus);
+    box-shadow:var(--ring-focus);
+  }
+  /* A hovered field lifts its surface a rung. Nudging its EDGE from .15 to .16
+     is a state nobody can see. */
+  :where(input,select,textarea):hover:not(:focus-visible):not(:disabled){background:var(--surface-3)}
   :where(input,textarea)::placeholder{color:var(--text-disabled)}
   :where(input,select,textarea,button):disabled{opacity:.5;cursor:not-allowed}
   :where(button,[role=button],summary,label,select){cursor:pointer}
@@ -726,4 +888,27 @@
   /* --white-20 is white-on-white in the light theme, so selection reads through
      --selection, which BOTH themes define. */
   ::selection{background:var(--selection);color:var(--text-primary)}
+
+  /* ——— the scrollbar ———
+     The single largest piece of UNSTYLED chrome left on a dark surface: a
+     default 15px light-grey scrollbar down the side of a #0a0a0a panel is the
+     one element on the page that did not get the memo, and it is visible on
+     every scrolling surface in the product. 6px, no track, thumb on the same
+     hairline ladder as everything else. Both syntaxes ship because they are
+     disjoint — `scrollbar-*` is Firefox and the `::-webkit-*` pseudos are
+     Chromium/Safari; neither engine reads the other. */
+     The thumb is a --white-* rung, so it does not invert; the `.light`
+     restatements sit here rather than in colors.css because a scrollbar is an
+     element default and this file is where element defaults live. Everything
+     stays INSIDE the layer — an unlayered rule here would outrank an app's own
+     utilities, which is the defect check 1c exists to catch. */
+  :where(html){scrollbar-color:var(--white-15) transparent;scrollbar-width:thin}
+  .light{scrollbar-color:rgb(0 0 0 / .18) transparent}
+  :where(*)::-webkit-scrollbar{width:6px;height:6px}
+  :where(*)::-webkit-scrollbar-track{background:transparent}
+  :where(*)::-webkit-scrollbar-thumb{background:var(--white-15);border-radius:var(--radius-full)}
+  :where(*)::-webkit-scrollbar-thumb:hover{background:var(--white-30)}
+  :where(*)::-webkit-scrollbar-corner{background:transparent}
+  .light :where(*)::-webkit-scrollbar-thumb{background:rgb(0 0 0 / .18)}
+  .light :where(*)::-webkit-scrollbar-thumb:hover{background:rgb(0 0 0 / .32)}
 }

@@ -59,6 +59,46 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
     : pass(`all ${urls.length} asset url()s resolve from the package root`)
 }
 
+// ── 1b. the Tailwind bridge is complete and self-contained ───────────────
+// An app should write ONE import and get working utilities. Each thing checked
+// here failed silently in production before it was checked: a missing slot
+// makes that utility resolve to nothing (`border-border` -> currentColor -> a
+// white hairline on black), and a surviving @import makes the browser drop
+// every token without a word.
+{
+  const tw = strip(read(join(root, 'tailwind.css')))
+  tw.includes('@import')
+    ? fail('tailwind.css contains an @import — invalid after `@import "tailwindcss"`, so the tokens are dropped')
+    : pass('tailwind.css has no @import to invalidate')
+
+  // Every Tailwind colour slot an app will reach for must be mapped.
+  const slots = ['background', 'foreground', 'card', 'popover', 'primary', 'secondary',
+                 'muted', 'muted-foreground', 'accent', 'destructive', 'border', 'input', 'ring']
+  const unmapped = slots.filter((s) => !tw.includes(`--color-${s}:`))
+  unmapped.length
+    ? fail(`tailwind.css does not map: ${unmapped.join(', ')}`)
+    : pass(`tailwind.css maps all ${slots.length} core colour slots`)
+
+  // And it must carry the values, not merely reference them.
+  tw.includes('--border:')
+    ? pass('tailwind.css carries the token values inline')
+    : fail('tailwind.css maps slots but carries no tokens — every utility resolves to nothing')
+}
+
+// ── 1c. element defaults must LOSE to an app's utilities ─────────────────
+// A rule outside a cascade layer beats a rule inside one regardless of
+// specificity, so an unlayered `a{color:...}` here silently outranked every
+// Tailwind text utility on every anchor — a `text-neutral-950` primary button
+// rendered white-on-white and read as a rendering glitch. These are DEFAULTS;
+// a default that cannot be overridden is not a default.
+{
+  const base = strip(read(join(tokensDir, 'base.css'))).trim()
+  const layered = /^@layer\s+base\s*\{/.test(base) && base.endsWith('}')
+  layered
+    ? pass('base.css element defaults are inside @layer base')
+    : fail('base.css is UNLAYERED — its element rules outrank every utility an app writes')
+}
+
 // ── 2. every var() used inside the token layer must resolve ──────────────
 {
   const declared = new Set()

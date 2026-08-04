@@ -126,4 +126,4 @@ Tokens track `hanzo.ai` (`app/globals.css`, `tailwind.config.ts`, `DESIGN.md`) a
 
 ## License
 
-BSD-3-Clause. Brand marks (the Hanzo logo, partner and provider logos) are the property of their respective owners and are provided for identification.
+MIT OR Apache-2.0, per [HIP-0137](https://github.com/hanzoai/hips/blob/main/HIPs/hip-0137-one-license.md). Brand marks (the Hanzo logo, partner and provider logos) are the property of their respective owners and are provided for identification.

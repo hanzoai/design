@@ -1,0 +1,32 @@
+# Canonical CI config — see hanzoai/ci.
+#
+# @hanzo/design is tokens, not a container: nothing here builds an image and
+# nothing rolls a cluster, so this file is a `test:` block and nothing else.
+# Publishing stays in .hanzo/workflows/publish.yml, which fires on a version
+# change and is the only thing allowed to reach npmjs.
+#
+# `pnpm build` IS the gate — it is `gen && test && tsc`, three things in one
+# command:
+#   gen   regenerates the three build products from tokens/*.css
+#   test  runs check-tokens.mjs, whose every assertion was once live and silent
+#         (an undefined custom property paints nothing, an unimported token file
+#         resolves nothing, a 1.66:1 focus ring looks fine to whoever shipped
+#         it), then hanzo-design-lint over the repo
+#   tsc   emits dist/, which is what the `.` export resolves to
+#
+# The `git diff` after it is the half a build cannot catch. `gen` OVERWRITES
+# styles.css, tailwind.css and src/tokens.gen.ts, and those generated files —
+# not tokens/*.css — are what npm actually ships. So editing a token and
+# forgetting to re-run gen leaves a repo that builds green, lints clean and
+# publishes the OLD bundle. Nothing in the build can notice, because the build
+# regenerates them itself and then throws the difference away. This asks the
+# only question that catches it: did the committed products come from the
+# committed source?
+test:
+  - name: design
+    run: |
+      set -e
+      corepack enable
+      pnpm install --frozen-lockfile
+      pnpm build
+      git diff --exit-code -- styles.css tailwind.css src/tokens.gen.ts

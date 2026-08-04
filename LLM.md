@@ -53,7 +53,7 @@ that off — `hanzoai/mirrors` `reconcile.py` switches it on for any repo carryi
 
 ## Structure
 ```
-tokens/           # 9 hand-authored .css files — THE source of truth
+tokens/           # 10 hand-authored .css files — THE source of truth
 src/
   tokens.gen.ts   # generated from tokens/ by scripts/gen-tokens.mjs; committed
   index.ts        # re-exports tokens.gen + cssVar(name, fallback?)
@@ -67,15 +67,15 @@ skills/
 scripts/
   gen-tokens.mjs  # tokens/*.css -> src/tokens.gen.ts (deterministic)
   check-tokens.mjs# the gate: every token resolves, contrast ratios hold
-  lint.mjs        # component lint
-styles.css        # serves all 9 token files to a consumer
+  lint.mjs        # the consumer-code gate; `pnpm test` runs it on the WHOLE package
+styles.css        # serves all 10 token files to a consumer, flattened
 ```
 
 ## Commands
 ```bash
 pnpm install       # install dev deps
 pnpm gen           # regenerate src/tokens.gen.ts from tokens/
-pnpm test          # check-tokens + component lint
+pnpm test          # check-tokens + lint every file in the package
 pnpm build         # gen + test + tsc  (the release gate)
 ```
 

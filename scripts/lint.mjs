@@ -26,7 +26,15 @@ const TOKENS = new Set()
 }
 
 // ── what we read ─────────────────────────────────────────────────────────
-const EXT = new Set(['.css', '.scss', '.jsx', '.tsx', '.js', '.ts', '.vue', '.svelte', '.html'])
+const EXT = new Set(['.css', '.scss', '.jsx', '.tsx', '.js', '.ts', '.vue', '.svelte', '.html', '.md'])
+// Markdown is PROSE, and prose legitimately says `var(--x)` while explaining
+// what a var is. Only its FENCED CSS BLOCKS are code, and only rule 1 runs on
+// them. That is not a technicality — `docs/integrate.md` shipped the
+// copy-paste snippet every new consumer starts from, and its `.panel` rule
+// drew `1px solid var(--border-card)`, a token nothing declares. Anyone who
+// followed the integration guide got a white hairline on black, from the
+// document whose job is to prevent exactly that.
+const FENCED_CSS = /```(?:css|scss)\n([\s\S]*?)```/g
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'out', 'coverage', 'vendor', '__pycache__'])
 // Third-party marks keep their own hex by design (DESIGN.md §2.4); so do the
 // token files themselves, which are where raw values are SUPPOSED to live, and
@@ -41,7 +49,13 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'out', '
 // An undefined custom property makes the declaration invalid, `border-color`
 // falls back to `currentColor`, and the specimen cards for this system's own
 // border scale had been painting near-white hairlines on black.
-const EXEMPT = /(^|\/)(tokens|assets|logos|providers|ui_kits|guidelines)(\/|$)|\.card\.html$/
+// The three GENERATED artifacts are on the list for the same reason `tokens/`
+// is: each one is that directory, emitted. `src/tokens.gen.ts` carries every
+// authored literal into TypeScript; `styles.css` and `tailwind.css` are the
+// flattened bundles. Flagging any of them for raw colour is flagging them for
+// working. They are still checked by rule 1 and by check-tokens.mjs, which is
+// what actually governs them.
+const EXEMPT = /(^|\/)(tokens|assets|logos|providers|ui_kits|guidelines)(\/|$)|\.card\.html$|(^|\/)(tokens\.gen\.ts|styles\.css|tailwind\.css)$/
 
 const walk = (p, out = []) => {
   const st = statSync(p)
@@ -95,6 +109,15 @@ function lintUnresolved(rel, src) {
 function lintFile(abs, root) {
   const rel = relative(root, abs).split(sep).join('/')
   const raw = readFileSync(abs, 'utf8')
+  if (extname(rel) === '.md') {
+    // Line numbers stay true: replace everything outside a css fence with
+    // blanks rather than extracting the fences, so a reported line is the line.
+    let masked = raw.replace(/[^\n]/g, ' ')
+    for (const m of raw.matchAll(FENCED_CSS))
+      masked = masked.slice(0, m.index) + m[0] + masked.slice(m.index + m[0].length)
+    lintUnresolved(rel, strip(masked))
+    return
+  }
   const src = strip(raw)
   lintUnresolved(rel, src)
   if (EXEMPT.test('/' + rel)) return

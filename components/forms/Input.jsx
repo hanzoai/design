@@ -8,10 +8,10 @@ export function Input({ invalid = false, style, ...rest }) {
       onBlur={(e)=>{setFocus(false);rest.onBlur&&rest.onBlur(e)}}
       style={{
         width:'100%',height:36,padding:'0 12px',
-        fontFamily:'var(--font-sans)',fontSize:'var(--text-sm)',color:'var(--foreground)',
-        background:'var(--black)',
-        border:'1px solid ' + (invalid ? 'var(--state-error)' : focus ? 'var(--ring)' : 'var(--border)'),
-        borderRadius:'var(--radius-sm)',outline:'none',
+        fontFamily:'var(--font-sans)',fontSize:'var(--text-control)',color:'var(--foreground)',
+        background:'var(--surface-2)',
+        border:'1px solid ' + (invalid ? 'var(--state-error)' : focus ? 'var(--border-focus)' : 'var(--border-control)'),
+        borderRadius:'var(--radius-sm)',
         transition:'border-color var(--duration-fast) var(--ease-out)',
         ...style,
       }}

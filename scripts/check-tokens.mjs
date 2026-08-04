@@ -3,7 +3,7 @@
 // unimported token file resolves nothing, and a 1.66:1 focus ring looks fine to
 // whoever shipped it. None of them can fail loudly on their own, so they fail
 // here. Run via `npm test` (part of `build`).
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -44,6 +44,19 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   entry.includes('@import')
     ? fail('styles.css contains an @import — a consumer cannot resolve it (see gen-tokens.mjs)')
     : pass('styles.css has no @import to resolve')
+
+  // Every asset it names must EXIST at the path it names, from the root the
+  // bundle now sits at. tokens/fonts.css points one directory up because it is
+  // authored one directory down; flattening rebases that, and a rebase that
+  // silently stopped happening would put the faces outside the package and fail
+  // every consumer's build on a missing module.
+  const urls = [...entry.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)]
+    .map((m) => m[1])
+    .filter((u) => !/^(data:|https?:|\/\/)/.test(u))
+  const broken = urls.filter((u) => !existsSync(join(root, u)))
+  broken.length
+    ? broken.forEach((u) => fail(`styles.css references ${u}, which does not exist at the package root`))
+    : pass(`all ${urls.length} asset url()s resolve from the package root`)
 }
 
 // ── 2. every var() used inside the token layer must resolve ──────────────

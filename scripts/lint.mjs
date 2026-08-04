@@ -29,7 +29,18 @@ const TOKENS = new Set()
 const EXT = new Set(['.css', '.scss', '.jsx', '.tsx', '.js', '.ts', '.vue', '.svelte', '.html'])
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'out', 'coverage', 'vendor', '__pycache__'])
 // Third-party marks keep their own hex by design (DESIGN.md §2.4); so do the
-// token files themselves, which are where raw values are SUPPOSED to live.
+// token files themselves, which are where raw values are SUPPOSED to live, and
+// the specimen cards, whose whole job is to render a palette swatch at its
+// literal value.
+//
+// This exempts those paths from the VALUE rules only. It used to skip them
+// entirely, and rule 1 — "a var() must resolve" — is not a value rule, it is a
+// correctness rule, and the exemption hid seven live instances of the exact
+// defect this package documents: `guidelines/*.card.html` drew borders from
+// `--border-hairline` and `--border-card`, neither of which anything declares.
+// An undefined custom property makes the declaration invalid, `border-color`
+// falls back to `currentColor`, and the specimen cards for this system's own
+// border scale had been painting near-white hairlines on black.
 const EXEMPT = /(^|\/)(tokens|assets|logos|providers|ui_kits|guidelines)(\/|$)|\.card\.html$/
 
 const walk = (p, out = []) => {
@@ -65,15 +76,11 @@ const flag = (file, line, rule, detail, fix) =>
   findings.push({ file, line, rule, detail, fix })
 
 // ── the rules ────────────────────────────────────────────────────────────
-function lintFile(abs, root) {
-  const rel = relative(root, abs).split(sep).join('/')
-  if (EXEMPT.test('/' + rel)) return
-  const raw = readFileSync(abs, 'utf8')
-  const src = strip(raw)
-  const isStyle = /\.(css|scss)$/.test(rel)
-
-  // 1. var() must resolve — against the design tokens or a local declaration.
-  //    This is the menu that painted with undefined tokens.
+// 1. var() must resolve — against the design tokens or a local declaration.
+//    This is the menu that painted with undefined tokens. It runs on EVERY
+//    file, including the ones exempt from the value rules: a swatch is allowed
+//    to state a hex, and is not allowed to name a token that does not exist.
+function lintUnresolved(rel, src) {
   const local = new Set([...src.matchAll(/--([A-Za-z0-9-]+)\s*:/g)].map((m) => m[1]))
   for (const m of src.matchAll(/var\(\s*--([A-Za-z0-9-]+)\s*(\)|,)/g)) {
     const [, name, close] = m
@@ -83,6 +90,15 @@ function lintFile(abs, root) {
       `var(--${name}) — nothing declares it`,
       'use a token from @hanzo/design or declare it locally')
   }
+}
+
+function lintFile(abs, root) {
+  const rel = relative(root, abs).split(sep).join('/')
+  const raw = readFileSync(abs, 'utf8')
+  const src = strip(raw)
+  lintUnresolved(rel, src)
+  if (EXEMPT.test('/' + rel)) return
+  const isStyle = /\.(css|scss)$/.test(rel)
 
   // 2. no raw colour in a surface. The theme cannot reach a literal.
   for (const m of src.matchAll(/#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b|\b(?:rgba?|hsla?)\(/g)) {

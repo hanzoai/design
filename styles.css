@@ -896,7 +896,7 @@
      every scrolling surface in the product. 6px, no track, thumb on the same
      hairline ladder as everything else. Both syntaxes ship because they are
      disjoint — `scrollbar-*` is Firefox and the `::-webkit-*` pseudos are
-     Chromium/Safari; neither engine reads the other. */
+     Chromium/Safari; neither engine reads the other.
      The thumb is a --white-* rung, so it does not invert; the `.light`
      restatements sit here rather than in colors.css because a scrollbar is an
      element default and this file is where element defaults live. Everything

@@ -109,8 +109,17 @@ const banner = `/* Hanzo Design System — the entry point. Import THIS one file
  * always imported in.
  */
 `
+// Hoisting a file from tokens/ to the package root moves what its relative
+// url()s point at. tokens/fonts.css says `../assets/fonts/Geist-Variable.woff2`
+// — correct from tokens/, one directory too high from the root, where it lands
+// outside the package entirely and every consumer's build fails on a missing
+// module. Rebasing is therefore part of flattening, not an afterthought: the
+// bundle is one level shallower, so `../` becomes `./`.
+const rebase = (css) =>
+  css.replace(/url\((\s*['"]?)\.\.\/(?!\.)/g, 'url($1./')
+
 const bundle = banner + FILES.map((f) => {
-  const css = readFileSync(join(tokensDir, `${f}.css`), 'utf8').trim()
+  const css = rebase(readFileSync(join(tokensDir, `${f}.css`), 'utf8').trim())
   return `\n/* ── tokens/${f}.css ─────────────────────────────────────── */\n${css}\n`
 }).join('')
 writeFileSync(join(root, 'styles.css'), bundle)

@@ -187,3 +187,10 @@ that reaches them.
   Grotesk as the canonical sans, while `tokens/fonts.css` declares Geist. The
   tokens win — prose has not caught up.
 - `CLAUDE.md` is a symlink to this file.
+
+## License
+
+Dual-licensed **MIT OR Apache-2.0** (`LICENSE-MIT`, `LICENSE-APACHE`), replacing the
+previous BSD-3-Clause declaration. Original Hanzo work standardises on this pair per
+HIP-0137 "One License" (`hanzoai/hips`, `HIPs/hip-0137-one-license.md`); forks keep
+their upstream licence unchanged.

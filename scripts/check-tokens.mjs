@@ -16,16 +16,34 @@ let failures = 0
 const fail = (msg) => { console.error(`  FAIL  ${msg}`); failures++ }
 const pass = (msg) => console.log(`  ok    ${msg}`)
 
-// ── 1. styles.css must serve every token file ────────────────────────────
+// ── 1. styles.css must CARRY every token file ────────────────────────────
 // tokens/z.css was authored, exported and documented — and left out of
 // styles.css, so the whole ladder resolved to nothing on every consumer.
+//
+// The entry point is now generated and FLATTENED, so this checks for the
+// declarations themselves rather than for an @import naming the file. That is
+// the stronger test and it is the one that was actually needed: the old shape
+// passed for years while no bundler could resolve a single token, because a
+// relative url() resolves against the CONSUMER's directory. Presence of the
+// import proved nothing about presence of the tokens.
 {
-  const entry = read(join(root, 'styles.css'))
+  const entry = strip(read(join(root, 'styles.css')))
   const files = readdirSync(tokensDir).filter((f) => f.endsWith('.css'))
-  const missing = files.filter((f) => !entry.includes(`tokens/${f}`))
+  const missing = files.filter((f) => {
+    const decls = [...strip(read(join(tokensDir, f))).matchAll(/--([A-Za-z0-9-]+)\s*:/g)].map((m) => m[1])
+    // A file with no custom properties (pure element rules, e.g. base.css) is
+    // carried if one of its selectors made it across.
+    if (!decls.length) return !entry.includes(strip(read(join(tokensDir, f))).trim().split('\n')[0].trim())
+    return !decls.every((d) => entry.includes(`--${d}`))
+  })
   missing.length
-    ? fail(`styles.css does not import: ${missing.join(', ')}`)
-    : pass(`styles.css serves all ${files.length} token files`)
+    ? fail(`styles.css does not carry the tokens from: ${missing.join(', ')}`)
+    : pass(`styles.css carries all ${files.length} token files, flattened`)
+
+  // And it must stay resolvable: an @import here is the exact defect above.
+  entry.includes('@import')
+    ? fail('styles.css contains an @import — a consumer cannot resolve it (see gen-tokens.mjs)')
+    : pass('styles.css has no @import to resolve')
 }
 
 // ── 2. every var() used inside the token layer must resolve ──────────────

@@ -12,19 +12,36 @@
    The same trap already bit `text-decoration` here once (see the a:hover note
    below). It was fixed by deleting that one declaration, which left the identical
    defect in `color` untouched. Layering fixes the whole class: these are
-   DEFAULTS, and a default must lose to anything an app states deliberately. */
+   DEFAULTS, and a default must lose to anything an app states deliberately.
+
+   The rules added for controls, media and touch go one step further and wrap
+   their selectors in :where(), which has ZERO specificity. @layer decides who
+   wins BETWEEN layers; :where() decides who wins INSIDE this one. An app that
+   ships its own reset — `input { … }`, `img { … }` — very often lands in the
+   same base layer, and these defaults have to lose that collision too. */
 @layer base {
   *{box-sizing:border-box;border-color:var(--border)}
-  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+  html{
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    scroll-behavior:smooth;
+    /* iOS inflates text when a phone is rotated to landscape unless this is
+       pinned. It is the single most common reason a mobile layout that was
+       verified in portrait comes apart on its side. */
+    -webkit-text-size-adjust:100%;
+  }
   /* Each font-family carries the stack as a literal fallback. --font-sans lives in
      tokens/fonts.css, which a surface may legitimately import separately; without
      the fallback an unresolved var() makes font-family invalid and the UA drops to
      its SERIF default — the whole console silently rendered in Times. */
-  body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings)}
+  body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings);overflow-wrap:break-word}
   h1,h2,h3,h4{margin:0;font-family:var(--font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));letter-spacing:var(--tracking-tight);color:var(--text-primary)}
   p{margin:0;text-wrap:pretty}
   code,pre,kbd{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
-  a{color:var(--text-primary);text-decoration:none;text-underline-offset:4px;transition:color var(--duration-fast) var(--ease-out)}
+  /* No `transition` here: the shared interactive rule below states one, and an
+     `a` selector (0,0,1) would outrank that :where() (0,0,0) and replace the
+     whole shorthand — anchors would transition colour and nothing else. */
+  a{color:var(--text-primary);text-decoration:none;text-underline-offset:4px}
   /* Underline is the accessible affordance for a link in RUNNING TEXT and a visual
      bug everywhere else: nav items, cards and anchor-buttons are all <a> too, so a
      blanket `a:hover` underlined every one of them on every surface that imports
@@ -33,6 +50,77 @@
      value `a` already has — a no-op that only served to outrank a component's own
      hover colour. */
   :is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover{text-decoration:underline}
+
+  /* ——— the smooth ———
+     Every interactive element in the reference transitions its colour, its fill
+     and its EDGE. That is most of what separates "classy and smooth" from a
+     correct set of colours: a hairline that steps from .10 to .16 instantly
+     reads as a flicker, and over 150ms reads as a response. Granted once, here,
+     rather than restated on every component. tokens/motion.css already zeroes
+     all of it under prefers-reduced-motion. */
+  :where(a,button,[role=button],input,select,textarea,summary,[tabindex]){
+    transition:color var(--duration-fast) var(--ease-out),
+               background-color var(--duration-fast) var(--ease-out),
+               border-color var(--duration-fast) var(--ease-out),
+               box-shadow var(--duration-fast) var(--ease-out),
+               opacity var(--duration-fast) var(--ease-out);
+  }
+
+  /* ——— controls ———
+     A bare <input> renders in the UA's face (Arial) at the UA's size with the
+     UA's border, which puts two typefaces and a foreign blue focus ring inside
+     Hanzo cards on every surface that has not styled its own fields yet. The
+     rules below are what a control looks like here. --border-control, NOT
+     --border: the boundary IS the affordance, so it is the rung that owes 3:1. */
+  :where(input,select,textarea,button){font:inherit;color:inherit}
+  :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){
+    background:var(--surface-2);
+    border:1px solid var(--border-control);
+    border-radius:var(--radius-sm);
+    padding:0 var(--space-3);
+  }
+  :where(textarea){padding:var(--space-2) var(--space-3);resize:vertical}
+  :where(input,select,textarea):focus-visible{border-color:var(--border-focus)}
+  :where(input,textarea)::placeholder{color:var(--text-disabled)}
+  :where(input,select,textarea,button):disabled{opacity:.5;cursor:not-allowed}
+  :where(button,[role=button],summary,label,select){cursor:pointer}
+
+  /* ——— media ———
+     An image, a video or an embed at its intrinsic width is the usual cause of a
+     390px page that scrolls sideways. */
+  :where(img,svg,video,canvas,iframe,picture,object){max-width:100%}
+  :where(img,video){height:auto}
+  /* A code block scrolls ITSELF rather than widening the document. */
+  :where(pre){overflow-x:auto}
+
+  /* ——— touch ———
+     Everything a finger aims at clears 44px, and every field renders at 16px so
+     iOS does not zoom the viewport on focus. Both are keyed on pointer:coarse —
+     the actual signal — so a desktop mouse still gets compact controls. This is
+     the whole of "mobile-first without per-app work": an app that never thought
+     about phones still has hittable buttons and a viewport that stays put. */
+  @media (pointer:coarse){
+    :where(button,[role=button],a[role=button],summary,select,textarea,
+           input:not([type=checkbox]):not([type=radio]):not([type=hidden])){
+      min-height:var(--tap-target);
+    }
+    :where(input,select,textarea){font-size:var(--text-control)}
+    /* A checkbox, radio or switch must NOT grow to 44px — the box is 16px
+       because that is what a checkbox looks like. What has to reach 44px is the
+       area a finger may land in, so the target is expanded with a centred
+       pseudo-element that changes nothing about layout or paint. WCAG 2.5.8 puts
+       the floor at 24px; a 16px box misses it, and every one of these ships at
+       16px. */
+    :where([role=checkbox],[role=radio],[role=switch],input[type=checkbox],input[type=radio]){position:relative}
+    :where([role=checkbox],[role=radio],[role=switch],input[type=checkbox],input[type=radio])::after{
+      content:'';position:absolute;top:50%;left:50%;
+      width:var(--tap-target);height:var(--tap-target);
+      transform:translate(-50%,-50%);
+    }
+  }
+
   :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
-  ::selection{background:var(--white-20);color:#fff}
+  /* --white-20 is white-on-white in the light theme, so selection reads through
+     --selection, which BOTH themes define. */
+  ::selection{background:var(--selection);color:var(--text-primary)}
 }

@@ -36,6 +36,19 @@
   --font-size-8xl:var(--text-8xl);
   --font-size-9xl:var(--text-9xl);
 
+  /* The size a FORM CONTROL renders at — and the ONE step in this scale that is
+     not a constant. iOS Safari zooms the viewport whenever a focused input
+     computes below 16px, and this scale's base is 14px, so every surface that
+     sized a field from --text-sm or --text-base bought the zoom.
+
+     It has to be a TOKEN rather than a rule because a control's size is almost
+     always set inline (every component in components/forms does), and an inline
+     style outranks any stylesheet — including a media query. A var() resolves
+     per-device inside that inline style, so this is the only construction that
+     actually reaches the control. Fields ask for --text-control; nothing else
+     should. */
+  --text-control:var(--text-sm);
+
   --weight-normal:400;
   --weight-medium:500;
   --weight-semibold:600;
@@ -62,4 +75,12 @@
   --type-caption:400 var(--text-xs)/var(--leading-xs) var(--font-sans);
   --type-code:400 var(--text-sm)/var(--leading-relaxed) var(--font-mono);
   --type-eyebrow:600 0.625rem/1 var(--font-sans);
+}
+
+/* On touch, a control goes to 16px. Below that iOS Safari zooms the viewport on
+   focus and never zooms back out, which is the single most common way a mobile
+   form feels broken. pointer:coarse is the real signal — a desktop mouse keeps
+   the compact 13px field. */
+@media (pointer:coarse){
+  :root{--text-control:1rem}
 }

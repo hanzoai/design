@@ -15,7 +15,7 @@ export function Checkbox({ checked, defaultChecked, onChange, disabled, label, s
       onKeyDown={(e)=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle()}}}
       style={{
         display:'inline-flex',alignItems:'center',justifyContent:'center',width:16,height:16,flexShrink:0,
-        borderRadius:4,border:'1px solid ' + (on ? 'var(--primary)' : 'var(--border-strong)'),
+        borderRadius:4,border:'1px solid ' + (on ? 'var(--primary)' : 'var(--border-control)'),
         background: on ? 'var(--primary)' : 'transparent',
         cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1,
         transition:'background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out)',

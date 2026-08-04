@@ -11,9 +11,9 @@ export function Select({ options = [], value, onChange, placeholder, style, chil
         onFocus={()=>setFocus(true)} onBlur={()=>setFocus(false)}
         style={{
           appearance:'none',width:'100%',height:36,padding:'0 32px 0 12px',
-          fontFamily:'var(--font-sans)',fontSize:'var(--text-sm)',color:'var(--foreground)',
-          background:'var(--black)',border:'1px solid ' + (focus ? 'var(--ring)' : 'var(--border)'),
-          borderRadius:'var(--radius-sm)',outline:'none',cursor:'pointer',
+          fontFamily:'var(--font-sans)',fontSize:'var(--text-control)',color:'var(--foreground)',
+          background:'var(--surface-2)',border:'1px solid ' + (focus ? 'var(--border-focus)' : 'var(--border-control)'),
+          borderRadius:'var(--radius-sm)',cursor:'pointer',
           transition:'border-color var(--duration-fast) var(--ease-out)',
           ...style,
         }}

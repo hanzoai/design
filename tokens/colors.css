@@ -1,9 +1,25 @@
 /* Hanzo is monochrome. One hue rendered through an opacity ladder.
    Base ladder = Tailwind neutral (tailwind.config.ts). Semantic names match
    hanzo.ai's CSS variables exactly, so code copies over 1:1.
-   DARK IS THE DEFAULT THEME (hanzo.ai mounts ThemeProvider defaultTheme="dark"). */
+   DARK IS THE DEFAULT THEME (hanzo.ai mounts ThemeProvider defaultTheme="dark").
+
+   The dark palette is derived from the chat surface in hanzoai/extension
+   (packages/browser/src/sidebar.css), which is the reference aesthetic: a
+   #0a0a0a ground, #fafafa ink, and boundaries drawn as LOW-ALPHA HAIRLINES.
+   Two properties of that reference are load-bearing and easy to lose:
+
+   1. Borders are alpha, not hex. rgb(255 255 255 / .10) composites correctly on
+      #0a0a0a AND on #262626; a solid #1f1f1f reads on the page and vanishes the
+      moment it lands on a lifted surface — which is why anyone who needed a
+      visible edge reached past it for the CONTROL rung and got a wireframe.
+   2. Surfaces lift by tiny steps (0a -> 0f -> 17 -> 26), and ink is a graded
+      ramp (#fafafa -> .78 -> .55 -> #a3a3a3), not one flat white. Pure #ffffff
+      on pure #000000 is 21:1 — the maximum-contrast pair that exists, and it
+      halates. #fafafa on #0a0a0a is 18.1:1: still far past AAA, visibly softer. */
 
 :root{
+  color-scheme:dark;
+
   /* ——— base neutral ladder ——— */
   --neutral-50:#FAFAFA;
   --neutral-100:#F5F5F5;
@@ -23,45 +39,97 @@
   --hanzo-white:#FFFFFF;
 
   /* ——— the opacity ladder: the real palette ——— */
+  /* Every rung below .30 is a HAIRLINE or a LIFT — the two things this system
+     draws with. The rungs are the reference's own values, not a rounded ramp. */
   --white-05:rgb(255 255 255 / .05);
+  --white-06:rgb(255 255 255 / .06);
+  --white-08:rgb(255 255 255 / .08);
   --white-10:rgb(255 255 255 / .10);
   --white-15:rgb(255 255 255 / .15);
+  --white-16:rgb(255 255 255 / .16);
   --white-20:rgb(255 255 255 / .20);
+  --white-22:rgb(255 255 255 / .22);
   --white-30:rgb(255 255 255 / .30);
   --white-40:rgb(255 255 255 / .40);
+  --white-55:rgb(255 255 255 / .55);
   --white-60:rgb(255 255 255 / .60);
+  --white-78:rgb(255 255 255 / .78);
   --white-80:rgb(255 255 255 / .80);
 
   /* ——— semantic aliases (dark, the default) ——— */
-  --background:#000000;
-  --foreground:#ededed;
-  --card:#0a0a0a;
-  --card-foreground:#f5f5f5;
-  --popover:#0a0a0a;
-  --popover-foreground:#f5f5f5;
-  --primary:#ffffff;
-  --primary-foreground:#000000;
-  --secondary:#1a1a1a;
-  --secondary-foreground:#f5f5f5;
-  --muted:#101010;
-  --muted-foreground:#888888;
-  --accent:#1a1a1a;
-  --accent-foreground:#f5f5f5;
+  --background:#0a0a0a;
+  --foreground:#fafafa;
+  --card:#0f0f0f;
+  --card-foreground:#fafafa;
+  --popover:#0f0f0f;
+  --popover-foreground:#fafafa;
+  --primary:#fafafa;
+  --primary-hover:#d4d4d4;
+  --primary-foreground:#0a0a0a;
+  --secondary:#262626;
+  --secondary-foreground:#fafafa;
+  --muted:#171717;
+  --muted-foreground:#a3a3a3;
+  --accent:#262626;
+  --accent-foreground:#fafafa;
   --destructive:#666666;
-  --destructive-foreground:#f5f5f5;
-  --border:#1f1f1f;
-  --input:#1f1f1f;
+  --destructive-foreground:#fafafa;
+
+  /* ——— boundaries ———
+     THREE tiers, and the split is the whole point. The first two are DECORATIVE:
+     they separate content, WCAG imposes no ratio on them, and they must stay
+     quiet. The third is PERCEIVABLE: it is the edge that IS the affordance.
+
+       --border          the hairline. Every card, panel, divider, list row.
+       --border-strong   the SAME hairline, one step up. Hover, active, emphasis.
+       --border-control  a control's edge — input, select, textarea, checkbox,
+                         switch. Must clear 3:1 on every surface in both themes
+                         (WCAG 1.4.11); check-tokens.mjs pins it.
+
+     Before this split there were only two rungs and they were an octave apart:
+     --border at #1f1f1f (1.27:1, invisible on anything lifted) and
+     --border-strong at --neutral-500 (4.43:1). Nothing sat between, so every
+     surface that wanted a border it could actually SEE reached for the control
+     rung — and a 1px mid-grey box around a card on near-black is a wireframe.
+     That is the "garish outlines" complaint, and it is fixed by having a middle.
+
+     A boundary that is WCAG-perceivable on a near-black ground IS a mid-grey;
+     that cannot be tuned away. So it is not tuned away — it is NAMED, so it can
+     only be spent where it is owed. "strong" is a degree word and will always be
+     read as one; "control" is a duty.
+
+     Which ladder a boundary is cut from follows from that, and is the whole
+     rule: DECORATIVE edges come off the ALPHA ladder, because they owe quiet
+     and they must composite over whatever surface they land on. CONTROL edges
+     come off the NEUTRAL ladder, because they owe a contrast ratio, and a ratio
+     you can only meet at a fixed value is not something to express as alpha.
+     --border-focus is therefore one NEUTRAL rung above --border-control, not an
+     alpha step: a focused field has to read brighter than a resting one, and
+     the resting one already sits at the WCAG floor. */
+  --border:var(--white-10);
+  --border-strong:var(--white-16);
+  --border-control:var(--neutral-500);   /* 4.43:1 worst case — see --ring */
+  --border-focus:var(--neutral-400);     /* one rung up: the field is focused  */
+  --input:var(--border-control);         /* shadcn `border-input` — a control  */
   /* A focus indicator is a NON-TEXT CONTRAST target: WCAG 2.4.11/1.4.11 require
      3:1 against every surface it can land on. --neutral-500 is the only rung on
-     this ladder that clears 3:1 on all of them — #000000, #0a0a0a, #101010,
-     #1a1a1a, AND the light theme's #ffffff/#f5f5f5 — so one value serves both
+     this ladder that clears 3:1 on all of them — #0a0a0a, #0f0f0f, #171717,
+     #262626, AND the light theme's #ffffff/#fafafa — so one value serves both
      themes. (Was #333333 = 1.66:1 on --background: not a focus indicator.) */
   --ring:var(--neutral-500);
   --brand:#e4e4e7;
   --brand-foreground:#09090b;
   --brand-muted:#a3a3a3;
   --black:#000000;
-  --white:#f5f5f5;
+  --white:#fafafa;
+  --selection:var(--white-20);
+
+  /* ——— glass: the lift ———
+     How a surface rises WITHOUT a block fill. An alpha-white wash composites
+     over whatever it lands on, so one value works on the page, on a card and
+     inside a popover. This is the mechanism behind the reference's depth. */
+  --glass:var(--white-05);
+  --glass-strong:var(--white-08);
 
   /* ——— surface recipes (card fills used across hanzo.ai) ——— */
   --surface-page:var(--background);
@@ -71,29 +139,22 @@
   --surface-overlay:rgb(10 10 10 / .95);     /* dropdown / popover panels       */
   --surface-header:rgb(0 0 0 / .7);          /* fixed nav, with backdrop blur   */
   --surface-scrim:rgb(0 0 0 / .8);           /* the dialog / sheet backdrop     */
-  /* Boundaries come in two kinds and they are NOT interchangeable.
-     DECORATIVE (--border, --border-hairline, --border-card): separates content;
-     WCAG imposes no ratio. Keep them quiet.
-     PERCEIVABLE (--border-strong): identifies a CONTROL — an input edge, a
-     switch, a checkbox — and must clear 3:1 (WCAG 1.4.11) on every surface.
-     Reach for --border-strong whenever the boundary IS the affordance. */
-  --border-hairline:var(--neutral-800);
-  --border-card:var(--white-10);
-  --border-strong:var(--neutral-500);   /* 3.59:1 worst case — see --ring */
 
   /* ——— the numeric surface ladder ——— */
   /* Aliases onto the semantic canvases above, so a brand fork that retunes
      --card/--muted/--secondary retunes the ladder with it and the light theme
-     inverts for free. Ascending lift: 0 is the page, 3 is a hovered control. */
+     inverts for free. Ascending lift: 0 is the page, 3 is a hovered control.
+     Dark resolves to the reference's own ladder — 0a / 0f / 17 / 26. */
   --surface-0:var(--background);
   --surface-1:var(--card);
   --surface-2:var(--muted);
   --surface-3:var(--secondary);
 
-  /* ——— text ranks ——— */
-  --text-primary:var(--pure-white);
-  --text-secondary:var(--white-80);
-  --text-tertiary:var(--white-60);
+  /* ——— text ranks ———
+     A graded ramp, not one flat white. The steps are the reference's. */
+  --text-primary:#fafafa;
+  --text-secondary:var(--white-78);
+  --text-tertiary:var(--white-55);
   --text-helper:var(--muted-foreground);
   --text-disabled:var(--white-30);
 
@@ -108,46 +169,54 @@
   --chrome-dot-green:rgb(34 197 94 / .6);
 }
 
-/* Light theme — the same tokens, inverted. Rare: only /brand-style docs pages. */
+/* Light theme — the same tokens, inverted.
+   The white-opacity ladder does NOT invert: --white-16 is white-on-white here.
+   So EVERY token whose dark value is a --white-* rung must be restated below,
+   and check-tokens.mjs fails the build if one is missed — that class of bug is
+   silent (the border simply stops existing) and has shipped before. */
 .light{
+  color-scheme:light;
   --background:#ffffff;
   --foreground:#0a0a0a;
-  --card:#f5f5f5;
+  /* A ladder, not four names for #f5f5f5. Light lifts by the same tiny steps
+     dark does — ~2% per rung — so --surface-0..3 mean something in both themes. */
+  --card:#fafafa;
   --card-foreground:#0a0a0a;
   --popover:#ffffff;
   --popover-foreground:#0a0a0a;
   --primary:#0a0a0a;
-  --primary-foreground:#ffffff;
-  --secondary:#f5f5f5;
+  --primary-hover:#262626;
+  --primary-foreground:#fafafa;
+  --secondary:#ededed;
   --secondary-foreground:#0a0a0a;
   --muted:#f5f5f5;
   --muted-foreground:#525252;
-  --accent:#f5f5f5;
+  --accent:#ededed;
   --accent-foreground:#0a0a0a;
   --destructive:#999999;
   --destructive-foreground:#ffffff;
-  --border:#e5e5e5;
-  --input:#e5e5e5;
+  --border:rgb(0 0 0 / .10);
+  --border-strong:rgb(0 0 0 / .16);
+  --border-control:var(--neutral-500);  /* 4.74:1 on #ffffff — conformant here too */
+  --border-focus:var(--neutral-600);    /* one rung DOWN — darker reads as brighter here */
+  --input:var(--border-control);
   /* Same rung as dark: #d4d4d4 measured 1.48:1 on white and could not carry a
      focus indicator either. --neutral-500 is 4.74:1 on #ffffff / 4.38:1 on
      #f5f5f5, so ONE value is conformant in both themes. */
   --ring:var(--neutral-500);
   --black:#0a0a0a;
   --white:#ffffff;
-  --surface-card:#f5f5f5;
+  --selection:rgb(0 0 0 / .16);
+  --glass:rgb(0 0 0 / .04);
+  --glass-strong:rgb(0 0 0 / .07);
+  --surface-card:#fafafa;
   --surface-card-emphasis:#ffffff;
-  --surface-card-quiet:#fafafa;
+  --surface-card-quiet:#fcfcfc;
   --surface-overlay:rgb(255 255 255 / .95);
   --surface-header:rgb(255 255 255 / .8);
   --surface-scrim:rgb(0 0 0 / .5);
-  --border-hairline:var(--neutral-200);
-  --border-card:rgb(0 0 0 / .1);
-  --border-strong:var(--neutral-500);   /* was --neutral-300 = 1.48:1 on white */
-  /* The white-opacity ladder does NOT invert, so --white-40 is white-on-white
-     here (1.00:1). Anything that needs a visible edge in BOTH themes must use
-     --border-strong, never a --white-* rung. */
   --text-primary:var(--neutral-950);
-  --text-secondary:rgb(10 10 10 / .8);
-  --text-tertiary:rgb(10 10 10 / .6);
+  --text-secondary:rgb(10 10 10 / .78);
+  --text-tertiary:rgb(10 10 10 / .55);
   --text-disabled:rgb(10 10 10 / .3);
 }

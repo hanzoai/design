@@ -15,24 +15,35 @@ export function Tabs({ defaultValue, value, onValueChange, style, children, ...r
 
 export function TabsList({ style, children, ...rest }) {
   return (
-    <div role="tablist" style={{display:'inline-flex',alignItems:'center',gap:4,padding:4,borderRadius:'var(--radius-sm)',background:'var(--muted)',border:'1px solid var(--border)',...style}} {...rest}>{children}</div>
+    // alignSelf: a segmented control is as wide as its segments. Without it the
+    // list is a flex ITEM of the Tabs column and stretches to the full row,
+    // which turns a compact control into a full-width bar.
+    <div role="tablist" style={{display:'inline-flex',alignSelf:'flex-start',maxWidth:'100%',overflowX:'auto',alignItems:'center',gap:2,padding:3,borderRadius:'var(--radius-lg)',background:'var(--surface-2)',border:'1px solid var(--border)',...style}} {...rest}>{children}</div>
   )
 }
 
 export function TabsTrigger({ value, style, children, ...rest }) {
   const { value: active, setValue } = React.useContext(Ctx)
+  const [hover, setHover] = React.useState(false)
   const on = active === value
   return (
     <button
       role="tab" aria-selected={on} onClick={() => setValue(value)}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
-        display:'inline-flex',alignItems:'center',gap:8,height:30,padding:'0 12px',
+        display:'inline-flex',alignItems:'center',gap:8,height:30,padding:'0 14px',
         fontFamily:'var(--font-sans)',fontSize:'var(--text-sm)',fontWeight:'var(--weight-medium)',
-        color: on ? 'var(--text-primary)' : 'var(--text-helper)',
-        background: on ? 'var(--secondary)' : 'transparent',
-        border:'1px solid ' + (on ? 'var(--border)' : 'transparent'),
-        borderRadius:'calc(var(--radius-sm) - 2px)',cursor:'pointer',whiteSpace:'nowrap',
-        transition:'color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out)',
+        letterSpacing:'var(--tracking-tight)',
+        color: on ? 'var(--text-primary)' : hover ? 'var(--text-secondary)' : 'var(--text-helper)',
+        // The selected tab is a surface that has RISEN out of the track: it
+        // lifts a rung, catches the light on its top edge and casts a small
+        // drop. A selected tab that only changes colour reads as a link that
+        // happens to be a different grey.
+        background: on ? 'var(--surface-3)' : 'transparent',
+        border:'1px solid ' + (on ? 'var(--border-strong)' : 'transparent'),
+        boxShadow: on ? 'var(--edge-highlight), var(--shadow-sm)' : 'none',
+        borderRadius:'calc(var(--radius-lg) - 3px)',cursor:'pointer',whiteSpace:'nowrap',
+        transition:'color var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), transform var(--duration-press) var(--ease-out)',
         ...style,
       }}
       {...rest}

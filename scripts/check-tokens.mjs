@@ -114,9 +114,17 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
     : pass(`all ${used.size} internal var() references resolve`)
 }
 
-// ── 3. the non-text contrast gate (WCAG 1.4.11 / 2.4.11) ─────────────────
-// A focus indicator and a control boundary must clear 3:1 against EVERY surface
-// they can land on, in BOTH themes. --ring was #333333 = 1.66:1 on --background.
+// ── 3. the focus-indicator contrast gate (WCAG 2.4.11) ───────────────────
+// The focus indicator must clear 3:1 against EVERY surface it can land on, in
+// BOTH themes. --ring was #333333 = 1.66:1 on --background.
+//
+// --border-control was gated here too and no longer is. That was not a
+// regression, it was the point: pinning a control's RESTING edge at 3:1 forces
+// it to a mid-grey on a near-black ground, four times heavier than the hairline
+// beside it, and a form drawn that way reads as a wireframe. The edge is now
+// rgb(255 255 255 / .15) — the reference's own value — and the contrast budget
+// is spent entirely on --ring, which is what a keyboard user actually navigates
+// by. A resting edge is an affordance; a focus ring is a position.
 {
   const css = strip(read(join(tokensDir, 'colors.css')))
   const block = (re) => { const m = css.match(re); const o = {}; if (m) for (const [, n, v] of m[1].matchAll(/--([A-Za-z0-9-]+)\s*:\s*([^;]+);/g)) o[n] = v.trim(); return o }
@@ -144,11 +152,12 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   }
 
   const CANVASES = ['background', 'card', 'popover', 'muted', 'secondary', 'surface-card', 'surface-overlay']
-  // The gate follows the DUTY, not the name. --border-control is the rung that
-  // draws a control's edge and --ring the focus indicator; those two owe 3:1.
-  // --border / --border-strong are decorative hairlines and owe nothing — that
-  // is exactly why they are allowed to be quiet enough to look like something.
-  const GATED = { ring: 3, 'border-control': 3 }
+  // The gate follows the DUTY, not the name — and exactly ONE duty owes a
+  // ratio. --ring is the focus indicator: transient, keyboard-only, and the
+  // whole of how someone knows where they are. Every boundary that is merely an
+  // affordance — --border, --border-strong, --border-control, --border-focus,
+  // --border-selected — is free to be as quiet as it looks.
+  const GATED = { ring: 3 }
   for (const [theme, scope] of Object.entries(themes)) {
     for (const [tok, min] of Object.entries(GATED)) {
       let worst = Infinity, where = ''
@@ -164,22 +173,57 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   }
 
   // ── 4. every white-alpha token must be restated for the light theme ──────
-  // The opacity ladder does NOT invert. A semantic token whose dark value is
+  // The opacity ladder does NOT invert. A semantic token built from
   // rgb(255 255 255 / a) is white-on-white in `.light` — the border does not
-  // change colour, it stops existing — and nothing renders an error. The raw
+  // change colour, it STOPS EXISTING — and nothing renders an error. The raw
   // ladder itself (--white-*) is exempt: it is a palette, not a semantic token,
   // and light-theme tokens are expected to restate rather than invert it.
+  //
+  // Two things widen this from where it started. It scans tokens/elevation.css
+  // as well as tokens/colors.css, because that is where the light lives now —
+  // an inset white highlight, a white hover bloom and a white panel sheen all
+  // fail in `.light` exactly the way a white border does, and more invisibly,
+  // since a missing lift looks like a design choice. And it matches white-alpha
+  // ANYWHERE INSIDE a value rather than requiring the whole value to be one
+  // colour, because every one of those tokens is a shadow or a gradient with
+  // the colour buried in it — `inset 0 1px 0 0 rgb(255 255 255 / .07)` would
+  // have sailed through a whole-value parse.
   {
     const PALETTE = /^(white|neutral|pure|hanzo)-/
-    const lightKeys = new Set(Object.keys(block(/\.light\s*\{([\s\S]*?)\n\}/)))
-    const leaked = Object.keys(dark).filter((k) => {
-      if (PALETTE.test(k) || lightKeys.has(k)) return false
-      const c = rgb(deref(dark[k], dark))
-      return c && c[3] < 1 && c[0] > 200 && c[1] > 200 && c[2] > 200
-    })
+    const FILES = ['colors', 'elevation']
+    const blockOf = (src, re) => { const m = strip(src).match(re); const o = {}; if (m) for (const [, n, v] of m[1].matchAll(/--([A-Za-z0-9-]+)\s*:\s*([^;]+);/g)) o[n] = v.trim(); return o }
+    const ROOT = /:root\s*\{([\s\S]*?)\n\}/
+    const LIGHT = /\.light\s*\{([\s\S]*?)\n\}/
+
+    const sources = Object.fromEntries(FILES.map((f) => [f, read(join(tokensDir, `${f}.css`))]))
+    // One scope to resolve against: elevation references --white-* rungs that
+    // colors declares, so a per-file scope could not expand them.
+    const scope = {}
+    for (const f of FILES) Object.assign(scope, blockOf(sources[f], ROOT))
+    // Restating in ANY file's .light block counts — the cascade does not care
+    // which file a declaration came from.
+    const lightKeys = new Set()
+    for (const f of FILES) for (const k of Object.keys(blockOf(sources[f], LIGHT))) lightKeys.add(k)
+
+    // Expansion STOPS at any token that is itself restated in `.light`.
+    // `--ring-focus: 0 0 0 3px var(--ring-halo)` is theme-safe precisely
+    // because --ring-halo inverts underneath it — var() resolves per theme at
+    // use time, so deferring to a token that flips IS the fix, and a checker
+    // that expanded through it would demand every wrapper be restated too.
+    const expand = (v, d = 0) =>
+      d > 10 ? v : String(v).replace(/var\(\s*--([A-Za-z0-9-]+)\s*\)/g,
+        (m, n) => (n in scope && !lightKeys.has(n) ? expand(scope[n], d + 1) : m))
+    const WHITE_ALPHA = /rgba?\(\s*255[\s,]+255[\s,]+255\s*[/,]\s*(?:0?\.\d+|0)\s*\)/i
+
+    const leaked = []
+    for (const f of FILES)
+      for (const k of Object.keys(blockOf(sources[f], ROOT))) {
+        if (PALETTE.test(k) || lightKeys.has(k)) continue
+        if (WHITE_ALPHA.test(expand(scope[k]))) leaked.push(`${k} (tokens/${f}.css)`)
+      }
     leaked.length
-      ? leaked.forEach((k) => fail(`--${k} is white-alpha and has no .light value — it vanishes in the light theme`))
-      : pass(`every white-alpha token is restated in .light`)
+      ? leaked.forEach((k) => fail(`--${k} is built from white-alpha and has no .light value — it vanishes in the light theme`))
+      : pass(`every white-alpha token in ${FILES.join('/')}.css is restated in .light`)
   }
 }
 

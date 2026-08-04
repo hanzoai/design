@@ -64,59 +64,82 @@
   --popover:#0f0f0f;
   --popover-foreground:#fafafa;
   --primary:#fafafa;
-  --primary-hover:#d4d4d4;
+  /* A 5% step, not the 16% this used to be. A filled button's fill is already
+     the top of the ink ramp, so the only directions available on hover are
+     "dimmer" and "brighter-around-the-edges" — and a 16% drop reads as the
+     button going DISABLED under the cursor, which is the one thing a hover must
+     never look like. The step is now small enough to register as pressure while
+     --bloom does the actual work of lighting it up. */
+  --primary-hover:#e5e5e5;
   --primary-foreground:#0a0a0a;
   --secondary:#262626;
+  /* One rung up, so a secondary button HAS a hover. It previously resolved to
+     --surface-3, which is --secondary — the same value it starts at. */
+  --secondary-hover:#333333;
   --secondary-foreground:#fafafa;
   --muted:#171717;
   --muted-foreground:#a3a3a3;
   --accent:#262626;
   --accent-foreground:#fafafa;
-  --destructive:#666666;
+  /* Destructive is the ONE place the monochrome rule already yields, and it was
+     yielding in only half the system: a field that fails validation draws
+     --state-error (#ef4444, which DESIGN.md §2.4 lists as permitted precisely
+     for "destructive / blocking error"), while the button that performs the
+     destruction drew #666666 — a mid-grey that is indistinguishable from a
+     disabled control. "Delete everything" and "you cannot click this" must not
+     be the same colour. So the two converge on the one token that already
+     names this meaning, and the ramp stays monochrome everywhere else. */
+  --destructive:var(--state-error);
+  --destructive-hover:#dc2626;   /* red-600 — deepens under the cursor */
   --destructive-foreground:#fafafa;
 
   /* ——— boundaries ———
-     THREE tiers, and the split is the whole point. The first two are DECORATIVE:
-     they separate content, WCAG imposes no ratio on them, and they must stay
-     quiet. The third is PERCEIVABLE: it is the edge that IS the affordance.
+     ONE ladder, cut from alpha, graded by duty. Every rung is a rung of the
+     opacity ladder above, so every boundary composites correctly on the page,
+     on a card, and inside a popover — and every rung is the reference's own
+     measured value, not a rounded ramp:
 
-       --border          the hairline. Every card, panel, divider, list row.
-       --border-strong   the SAME hairline, one step up. Hover, active, emphasis.
-       --border-control  a control's edge — input, select, textarea, checkbox,
-                         switch. Must clear 3:1 on every surface in both themes
-                         (WCAG 1.4.11); check-tokens.mjs pins it.
+       --border          .10  the hairline. Cards, panels, dividers, list rows.
+       --border-strong   .16  the same hairline, one step up. Hover, emphasis.
+       --border-control  .15  a control's resting edge — input, select, textarea.
+       --border-focus    .22  that control, focused.
+       --border-selected .30  the thing that is currently CHOSEN — the active
+                              tab, the current tile, the featured plan.
 
-     Before this split there were only two rungs and they were an octave apart:
-     --border at #1f1f1f (1.27:1, invisible on anything lifted) and
-     --border-strong at --neutral-500 (4.43:1). Nothing sat between, so every
-     surface that wanted a border it could actually SEE reached for the control
-     rung — and a 1px mid-grey box around a card on near-black is a wireframe.
-     That is the "garish outlines" complaint, and it is fixed by having a middle.
+     The previous release cut the last three from the NEUTRAL ladder instead,
+     because a boundary that clears WCAG 1.4.11's 3:1 on a near-black ground IS
+     a mid-grey and no amount of tuning changes that. It is true, and it is also
+     what a wireframe looks like: a 1px #737373 box around every field, four
+     times heavier than the hairline beside it, so a form read as a debug
+     overlay rather than a surface. Aesthetics decided it — the reference draws
+     an input at rgb(255 255 255 / .15) and a focused one at .22 (sidebar.css
+     --input-border / .composer-box:focus-within), and that is what ships here.
 
-     A boundary that is WCAG-perceivable on a near-black ground IS a mid-grey;
-     that cannot be tuned away. So it is not tuned away — it is NAMED, so it can
-     only be spent where it is owed. "strong" is a degree word and will always be
-     read as one; "control" is a duty.
-
-     Which ladder a boundary is cut from follows from that, and is the whole
-     rule: DECORATIVE edges come off the ALPHA ladder, because they owe quiet
-     and they must composite over whatever surface they land on. CONTROL edges
-     come off the NEUTRAL ladder, because they owe a contrast ratio, and a ratio
-     you can only meet at a fixed value is not something to express as alpha.
-     --border-focus is therefore one NEUTRAL rung above --border-control, not an
-     alpha step: a focused field has to read brighter than a resting one, and
-     the resting one already sits at the WCAG floor. */
+     What replaces the ratio is the FOCUS INDICATOR, which is the thing a
+     keyboard user actually navigates by and the one boundary still pinned at
+     3:1 (--ring, below). A resting edge is an affordance; a focus ring is a
+     position. Only the second one is load-bearing when you cannot see well, and
+     spending the contrast budget there rather than on all four edges of every
+     idle field is what lets the system be quiet AND findable at once. */
   --border:var(--white-10);
   --border-strong:var(--white-16);
-  --border-control:var(--neutral-500);   /* 4.43:1 worst case — see --ring */
-  --border-focus:var(--neutral-400);     /* one rung up: the field is focused  */
-  --input:var(--border-control);         /* shadcn `border-input` — a control  */
+  --border-control:var(--white-15);      /* sidebar.css --input-border           */
+  --border-focus:var(--white-22);        /* .composer-box:focus-within           */
+  --border-selected:var(--white-30);     /* the current tab / tile / plan        */
+  --input:var(--border-control);         /* shadcn `border-input` — a control    */
   /* A focus indicator is a NON-TEXT CONTRAST target: WCAG 2.4.11/1.4.11 require
-     3:1 against every surface it can land on. --neutral-500 is the only rung on
-     this ladder that clears 3:1 on all of them — #0a0a0a, #0f0f0f, #171717,
-     #262626, AND the light theme's #ffffff/#fafafa — so one value serves both
-     themes. (Was #333333 = 1.66:1 on --background: not a focus indicator.) */
-  --ring:var(--neutral-500);
+     3:1 against every surface it can land on, and unlike a resting edge it is
+     worth the loudness — it is transient, it only appears on keyboard focus,
+     and it is the whole of how a keyboard user knows where they are.
+     --white-40 clears it on every canvas in both themes precisely BECAUSE it is
+     alpha: on a lifted surface the ring lifts with it (3.77:1 on #0a0a0a,
+     3.66:1 on #262626), which a fixed grey cannot do. */
+  --ring:var(--white-40);
+  /* The soft halo that sits outside the ring — the reference's
+     `box-shadow: 0 0 0 2px rgb(255 255 255 / .06)` on a focused composer. It
+     carries no ratio; it is what makes focus read as designed rather than as a
+     browser default. Spent through --ring-focus (tokens/elevation.css). */
+  --ring-halo:var(--white-10);
   --brand:#e4e4e7;
   --brand-foreground:#09090b;
   --brand-muted:#a3a3a3;
@@ -131,12 +154,27 @@
   --glass:var(--white-05);
   --glass-strong:var(--white-08);
 
-  /* ——— surface recipes (card fills used across hanzo.ai) ——— */
+  /* ——— surface recipes ———
+     A card has to be a SURFACE, which means you have to be able to see that it
+     is not the page. These were cut from neutral-900 (#171717) at .4/.5/.8, and
+     at .5 that composites to #101010 on a #0a0a0a ground — six levels above the
+     page, which is not a surface, it is a very slightly different black. Three
+     cards side by side then read as one flat field with hairlines ruled across
+     it, and no amount of shadow fixes it, because you cannot cast a shadow onto
+     black.
+
+     Cut from neutral-800 (#262626) instead, they land on 14 / 18 / 1f — the
+     reference's own panel (#171717 on a #0f0f0f container) with room either
+     side of it. They stay ALPHA so a card nested in a popover still lifts off
+     its parent rather than punching a hole in it; that is the whole reason
+     these are recipes and not just --surface-* rungs. */
   --surface-page:var(--background);
-  --surface-card:rgb(23 23 23 / .5);        /* bg-neutral-900/50 — grid tiles */
-  --surface-card-emphasis:rgb(23 23 23 / .8);/* bg-neutral-900/80 — featured   */
-  --surface-card-quiet:rgb(23 23 23 / .4);   /* bg-neutral-900/40 — story cards */
-  --surface-overlay:rgb(10 10 10 / .95);     /* dropdown / popover panels       */
+  --surface-card:rgb(38 38 38 / .5);         /* -> #181818 on the page          */
+  --surface-card-emphasis:rgb(38 38 38 / .75);/* -> #1f1f1f — featured          */
+  --surface-card-quiet:rgb(38 38 38 / .35);  /* -> #141414 — story cards        */
+  /* A floating panel that is the SAME colour as the page is not floating. This
+     was rgb(10 10 10 / .95) — the page, at 95% of the page. */
+  --surface-overlay:rgb(23 23 23 / .92);     /* dropdown / popover panels       */
   --surface-header:rgb(0 0 0 / .7);          /* fixed nav, with backdrop blur   */
   --surface-scrim:rgb(0 0 0 / .8);           /* the dialog / sheet backdrop     */
 
@@ -188,22 +226,30 @@
   --primary-hover:#262626;
   --primary-foreground:#fafafa;
   --secondary:#ededed;
+  --secondary-hover:#e0e0e0;
   --secondary-foreground:#0a0a0a;
   --muted:#f5f5f5;
   --muted-foreground:#525252;
   --accent:#ededed;
   --accent-foreground:#0a0a0a;
-  --destructive:#999999;
+  --destructive:var(--state-error);
+  --destructive-hover:#dc2626;
   --destructive-foreground:#ffffff;
   --border:rgb(0 0 0 / .10);
   --border-strong:rgb(0 0 0 / .16);
-  --border-control:var(--neutral-500);  /* 4.74:1 on #ffffff — conformant here too */
-  --border-focus:var(--neutral-600);    /* one rung DOWN — darker reads as brighter here */
+  --border-control:rgb(0 0 0 / .15);
+  /* Focus and selection are pushed further here than the .22/.30 they sit at in
+     dark. Black-on-white at a given alpha reads FAINTER than white-on-black at
+     the same alpha — .22 black on #ffffff measures 1.69:1 where .22 white on
+     #0a0a0a measures 1.97:1 — so mirroring the number would quietly make the
+     light theme's focus state the weakest state in the system. */
+  --border-focus:rgb(0 0 0 / .32);
+  --border-selected:rgb(0 0 0 / .42);
   --input:var(--border-control);
-  /* Same rung as dark: #d4d4d4 measured 1.48:1 on white and could not carry a
-     focus indicator either. --neutral-500 is 4.74:1 on #ffffff / 4.38:1 on
-     #f5f5f5, so ONE value is conformant in both themes. */
-  --ring:var(--neutral-500);
+  /* Same duty, same 3:1 floor, opposite direction: .50 black is 3.98:1 on
+     #ffffff and 3.67:1 on #f5f5f5. */
+  --ring:rgb(0 0 0 / .5);
+  --ring-halo:rgb(0 0 0 / .07);
   --black:#0a0a0a;
   --white:#ffffff;
   --selection:rgb(0 0 0 / .16);

@@ -841,7 +841,9 @@
      UA's border, which puts two typefaces and a foreign blue focus ring inside
      Hanzo cards on every surface that has not styled its own fields yet. The
      rules below are what a control looks like here. --border-control, NOT
-     --border: the boundary IS the affordance, so it is the rung that owes 3:1. */
+     --border: a field's edge is its own duty and its own rung, so a surface can
+     retune fields without touching every divider on the page. It owes no
+     contrast ratio — the whole budget goes to --ring, below. */
   :where(input,select,textarea,button){font:inherit;color:inherit}
   :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){
     background:var(--surface-2);

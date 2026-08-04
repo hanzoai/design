@@ -63,7 +63,19 @@
                background-color var(--duration-fast) var(--ease-out),
                border-color var(--duration-fast) var(--ease-out),
                box-shadow var(--duration-fast) var(--ease-out),
-               opacity var(--duration-fast) var(--ease-out);
+               opacity var(--duration-fast) var(--ease-out),
+               transform var(--duration-press) var(--ease-out);
+  }
+
+  /* ——— the press ———
+     A button that moves under the finger is the cheapest "this is a real
+     control" signal there is, and its absence is most of why a correct-looking
+     button still feels like a picture of a button. 2% over 90ms — small enough
+     that it reads as pressure rather than as animation, and it is the
+     reference's own value (.auth-signin-btn:active). Inputs are excluded: a
+     text field does not depress, and scaling one mid-caret is a glitch. */
+  :where(button,[role=button],a[role=button],summary):active:not(:disabled){
+    transform:scale(.98);
   }
 
   /* ——— controls ———
@@ -76,11 +88,29 @@
   :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){
     background:var(--surface-2);
     border:1px solid var(--border-control);
-    border-radius:var(--radius-sm);
+    /* --radius-md (8px), not --radius-sm (6px). On a 36px control the two are
+       one step apart and it is the step between "boxy" and "considered";
+       --radius-sm keeps its job on genuinely small parts — badges, chips, menu
+       rows — where 8px would look bubbly. The reference draws its composer and
+       its buttons at 8-10px and nothing at 6px except 22px chips. */
+    border-radius:var(--radius-md);
     padding:0 var(--space-3);
   }
   :where(textarea){padding:var(--space-2) var(--space-3);resize:vertical}
-  :where(input,select,textarea):focus-visible{border-color:var(--border-focus)}
+  /* ——— focus, on a control ———
+     Not the generic ring. A field already HAS an edge, so focus brightens that
+     edge (.15 -> .22) and adds a soft halo just outside it — which is what the
+     reference does (.composer-box:focus-within) and what separates a focused
+     field from a browser default. The generic `outline` is suppressed here
+     precisely because it would draw a second, harder box around this one. */
+  :where(input,select,textarea):focus-visible{
+    outline:none;
+    border-color:var(--border-focus);
+    box-shadow:var(--ring-focus);
+  }
+  /* A hovered field lifts its surface a rung. Nudging its EDGE from .15 to .16
+     is a state nobody can see. */
+  :where(input,select,textarea):hover:not(:focus-visible):not(:disabled){background:var(--surface-3)}
   :where(input,textarea)::placeholder{color:var(--text-disabled)}
   :where(input,select,textarea,button):disabled{opacity:.5;cursor:not-allowed}
   :where(button,[role=button],summary,label,select){cursor:pointer}
@@ -123,4 +153,27 @@
   /* --white-20 is white-on-white in the light theme, so selection reads through
      --selection, which BOTH themes define. */
   ::selection{background:var(--selection);color:var(--text-primary)}
+
+  /* ——— the scrollbar ———
+     The single largest piece of UNSTYLED chrome left on a dark surface: a
+     default 15px light-grey scrollbar down the side of a #0a0a0a panel is the
+     one element on the page that did not get the memo, and it is visible on
+     every scrolling surface in the product. 6px, no track, thumb on the same
+     hairline ladder as everything else. Both syntaxes ship because they are
+     disjoint — `scrollbar-*` is Firefox and the `::-webkit-*` pseudos are
+     Chromium/Safari; neither engine reads the other. */
+     The thumb is a --white-* rung, so it does not invert; the `.light`
+     restatements sit here rather than in colors.css because a scrollbar is an
+     element default and this file is where element defaults live. Everything
+     stays INSIDE the layer — an unlayered rule here would outrank an app's own
+     utilities, which is the defect check 1c exists to catch. */
+  :where(html){scrollbar-color:var(--white-15) transparent;scrollbar-width:thin}
+  .light{scrollbar-color:rgb(0 0 0 / .18) transparent}
+  :where(*)::-webkit-scrollbar{width:6px;height:6px}
+  :where(*)::-webkit-scrollbar-track{background:transparent}
+  :where(*)::-webkit-scrollbar-thumb{background:var(--white-15);border-radius:var(--radius-full)}
+  :where(*)::-webkit-scrollbar-thumb:hover{background:var(--white-30)}
+  :where(*)::-webkit-scrollbar-corner{background:transparent}
+  .light :where(*)::-webkit-scrollbar-thumb{background:rgb(0 0 0 / .18)}
+  .light :where(*)::-webkit-scrollbar-thumb:hover{background:rgb(0 0 0 / .32)}
 }

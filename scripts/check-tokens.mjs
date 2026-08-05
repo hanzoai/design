@@ -140,30 +140,38 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
     : fail('base.css is UNLAYERED — its element rules outrank every utility an app writes')
 }
 
-// ── 1d. a focused element gets exactly ONE indicator ─────────────────────
-// The field rule and the generic ring rule both compute to (0,1,0) — :where()
-// zeroes its contents and each side keeps one pseudo-class — so the cascade
-// falls through to SOURCE ORDER inside @layer base. The generic rule was
-// written later, so it overrode the `outline:none` that the field rule states
-// expressly to prevent it, and every focused input on every consumer drew the
-// 2px ring AND the edge+halo. Both rules read as correct in isolation; only
-// their order was wrong, which is why nobody saw it in either file.
+// ── 1d. exactly ONE rule decides focus ───────────────────────────────────
+// Until 0.4.9 there were two: a field rule that suppressed the outline and drew
+// a brightened edge + halo, and the generic ring. Both computed to (0,1,0) —
+// :where() zeroes its contents and each side keeps one pseudo-class — so the
+// cascade fell through to SOURCE ORDER inside @layer base, the generic rule was
+// written later, and it overrode the `outline:none` the field rule stated
+// expressly to prevent it. Every focused input on every consumer drew BOTH.
+// Each rule read as correct alone; the defect existed only in their order,
+// which is why it survived review in both files.
 //
-// Order is not testable as intent, so this tests the property instead: a rule
-// that paints an outline on focus must not be able to land on a field.
+// Order is not testable as intent, so this tests the property that replaced it:
+// one rule paints the indicator, and nothing else touches focus. A second rule
+// is how they disagree, `outline:none` is how an indicator disappears, and
+// box-shadow is how a second one appears — none of the three can return quietly.
 {
   const base = strip(read(join(tokensDir, 'base.css')))
-  const FIELDS = 'input,select,textarea'
-  // `outline:none` disarms; anything else paints. `outline-offset` is a
-  // different property and never matches — the colon must follow `outline`.
-  const paints = (body) => /(?:^|[;{\s])outline\s*:\s*(?!none\b)[^;}]+/.test(body)
-  const scoped = (sel) => sel.includes(`:where(${FIELDS})`) || sel.includes(`:not(${FIELDS})`)
-  const doubled = [...base.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  // `outline-offset` is a different property and never matches: the colon must
+  // follow `outline` itself.
+  const OUTLINE = /(?:^|[;{\s])outline\s*:\s*([^;}]+)/
+  const rules = [...base.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .map(([, sel, body]) => ({ sel: sel.trim().replace(/\s+/g, ' '), body }))
-    .filter(({ sel, body }) => sel.includes(':focus-visible') && paints(body) && !scoped(sel))
-  doubled.length
-    ? doubled.forEach(({ sel }) => fail(`\`${sel}\` paints an outline on a field that already draws its own edge + halo — two focus indicators`))
-    : pass('one focus indicator per element: fields brighten their edge, everything else rings')
+    .filter(({ sel }) => sel.includes(':focus-visible'))
+
+  const paints = rules.filter(({ body }) => { const m = body.match(OUTLINE); return m && m[1].trim() !== 'none' })
+  const mutes = rules.filter(({ body }) => { const m = body.match(OUTLINE); return m && m[1].trim() === 'none' })
+  const halos = rules.filter(({ body }) => /(?:^|[;{\s])box-shadow\s*:/.test(body))
+
+  paints.length === 1
+    ? pass(`one focus indicator, one rule: \`${paints[0].sel}\``)
+    : fail(`${paints.length} rules paint a focus outline (${paints.map((r) => r.sel).join(' / ')}) — equal specificity inside @layer base, so source order decides which one a user actually sees`)
+  mutes.forEach(({ sel }) => fail(`\`${sel}\` sets outline:none — it removes the focus indicator instead of replacing it`))
+  halos.forEach(({ sel }) => fail(`\`${sel}\` adds a box-shadow on focus — a second indicator beside the ring`))
 }
 
 // ── 2. every var() used inside the token layer must resolve ──────────────

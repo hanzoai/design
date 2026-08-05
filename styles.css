@@ -229,23 +229,23 @@
    silent (the border simply stops existing) and has shipped before. */
 .light{
   color-scheme:light;
-  --background:#ffffff;
+  --background:#f7f7f7;
   --foreground:#0a0a0a;
   /* A ladder, not four names for #f5f5f5. Light lifts by the same tiny steps
      dark does — ~2% per rung — so --surface-0..3 mean something in both themes. */
-  --card:#fafafa;
+  --card:#f2f2f2;
   --card-foreground:#0a0a0a;
-  --popover:#ffffff;
+  --popover:#fbfbfb;
   --popover-foreground:#0a0a0a;
   --primary:#0a0a0a;
   --primary-hover:#262626;
   --primary-foreground:#fafafa;
-  --secondary:#ededed;
+  --secondary:#e4e4e4;
   --secondary-hover:#e0e0e0;
   --secondary-foreground:#0a0a0a;
-  --muted:#f5f5f5;
+  --muted:#ededed;
   --muted-foreground:#525252;
-  --accent:#ededed;
+  --accent:#e4e4e4;
   --accent-foreground:#0a0a0a;
   --destructive:var(--state-error);
   --destructive-hover:#dc2626;
@@ -270,9 +270,9 @@
   --selection:rgb(0 0 0 / .16);
   --glass:rgb(0 0 0 / .04);
   --glass-strong:rgb(0 0 0 / .07);
-  --surface-card:#fafafa;
-  --surface-card-emphasis:#ffffff;
-  --surface-card-quiet:#fcfcfc;
+  --surface-card:#f2f2f2;
+  --surface-card-emphasis:#fdfdfd;
+  --surface-card-quiet:#f5f5f5;
   --surface-overlay:rgb(255 255 255 / .95);
   --surface-header:rgb(255 255 255 / .8);
   --surface-scrim:rgb(0 0 0 / .5);

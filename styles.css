@@ -838,8 +838,9 @@
      Not the generic ring. A field already HAS an edge, so focus brightens that
      edge (.15 -> .22) and adds a soft halo just outside it — which is what the
      reference does (.composer-box:focus-within) and what separates a focused
-     field from a browser default. The generic `outline` is suppressed here
-     precisely because it would draw a second, harder box around this one. */
+     field from a browser default. `outline:none` drops the UA's own focus ring,
+     which would otherwise draw a second, harder box around this one; the
+     generic ring below excludes fields for the same reason. */
   :where(input,select,textarea):focus-visible{
     outline:none;
     border-color:var(--border-focus);
@@ -886,7 +887,17 @@
     }
   }
 
-  :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  /* The generic ring — for everything that is NOT a field. The exclusion is
+     load-bearing, not tidiness. This rule and the control rule above both
+     compute to (0,1,0): :where() zeroes whatever it wraps, leaving one
+     pseudo-class on each side. Equal specificity inside one layer falls through
+     to source order, this rule sits 46 lines LATER, so it overrode the
+     `outline:none` written above to prevent precisely this — and every focused
+     input, select and textarea on every consumer drew BOTH the 2px ring and the
+     edge+halo. Two indicators, from the two rules that each say there is one.
+     Stating the exclusion in the selector fixes it by MEANING rather than by
+     position, so reordering either rule cannot bring it back. */
+  :where(:not(input,select,textarea)):focus-visible{outline:2px solid var(--ring);outline-offset:2px}
   /* --white-20 is white-on-white in the light theme, so selection reads through
      --selection, which BOTH themes define. */
   ::selection{background:var(--selection);color:var(--text-primary)}

@@ -140,6 +140,32 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
     : fail('base.css is UNLAYERED — its element rules outrank every utility an app writes')
 }
 
+// ── 1d. a focused element gets exactly ONE indicator ─────────────────────
+// The field rule and the generic ring rule both compute to (0,1,0) — :where()
+// zeroes its contents and each side keeps one pseudo-class — so the cascade
+// falls through to SOURCE ORDER inside @layer base. The generic rule was
+// written later, so it overrode the `outline:none` that the field rule states
+// expressly to prevent it, and every focused input on every consumer drew the
+// 2px ring AND the edge+halo. Both rules read as correct in isolation; only
+// their order was wrong, which is why nobody saw it in either file.
+//
+// Order is not testable as intent, so this tests the property instead: a rule
+// that paints an outline on focus must not be able to land on a field.
+{
+  const base = strip(read(join(tokensDir, 'base.css')))
+  const FIELDS = 'input,select,textarea'
+  // `outline:none` disarms; anything else paints. `outline-offset` is a
+  // different property and never matches — the colon must follow `outline`.
+  const paints = (body) => /(?:^|[;{\s])outline\s*:\s*(?!none\b)[^;}]+/.test(body)
+  const scoped = (sel) => sel.includes(`:where(${FIELDS})`) || sel.includes(`:not(${FIELDS})`)
+  const doubled = [...base.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map(([, sel, body]) => ({ sel: sel.trim().replace(/\s+/g, ' '), body }))
+    .filter(({ sel, body }) => sel.includes(':focus-visible') && paints(body) && !scoped(sel))
+  doubled.length
+    ? doubled.forEach(({ sel }) => fail(`\`${sel}\` paints an outline on a field that already draws its own edge + halo — two focus indicators`))
+    : pass('one focus indicator per element: fields brighten their edge, everything else rings')
+}
+
 // ── 2. every var() used inside the token layer must resolve ──────────────
 {
   const declared = new Set()

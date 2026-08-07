@@ -1,23 +1,29 @@
 /**
  * A person's own reading of the system: type size, density, accent.
  *
- * The ramps in `tokens/*.css` are the SHAPE — the relationships between sizes,
- * gaps and hues that make a surface read as one thing. A preference does not
- * replace them and cannot reach inside them. It applies ONE transform to a whole
- * axis, so every size still stands in the same relation to every other size and
- * a customised UI is the same design at a different setting, not a different
- * design.
+ * Three knobs, and each is ONE multiplier on a whole axis — never a restated
+ * ramp. The ramps live in `tokens/*.css`, authored once, and each rung carries
+ * its own `calc(<base> * var(--type-scale, 1))`. So a preference sets three
+ * numbers and every rung follows, including rungs added later and rungs this
+ * file has never heard of.
  *
- * It is a pure function on purpose. `vars()` maps a preference to the custom
- * properties that carry it, and returns them; nothing here touches a document.
- * That is what lets it be tested without a browser and reused by every surface —
- * an app, an embedded builder preview, a server render that inlines the result.
+ * That is not a style choice; it is the fix for a real bug. The first version of
+ * this module kept its own copy of the type ramp so it could recompute each
+ * rung, and the copy was WRONG — it had `lg: 1rem` and `xl: 1.125rem` (16px and
+ * 18px) while `tokens/typography.css` says `0.9375rem` and `1.0625rem` (15px and
+ * 17px). Setting a preference of 1 — "leave it alone" — would have silently
+ * resized two rungs of the published design. A second copy of a value is a
+ * second source of truth, and it drifted before anyone used it.
  *
- * Three axes, because those are the three the token files already separate:
+ * Because the knobs are plain multipliers, any OTHER ramp can opt in the same
+ * way. @hanzo/gui compiles its own `--f-size-*` scale for the 1600-odd
+ * `fontSize="$n"` call sites in the apps; an app that redeclares those as
+ * `calc(<its px> * var(--type-scale, 1))` gets the same control with no change
+ * at scale 1.
  *
- *   type    scales the --text-* ramp
- *   density scales the --grid-gap-* ramp (the spacing between things)
- *   accent  sets --primary / --accent (the one hue the monochrome brand allows)
+ * It is a pure function on purpose: it maps a preference to custom properties
+ * and returns them, touching no document. That is what lets an app, an embedded
+ * preview and a server render apply it identically.
  */
 
 export type Density = "compact" | "default" | "comfortable";
@@ -42,30 +48,24 @@ export interface Preference {
 export const TYPE_MIN = 0.85;
 export const TYPE_MAX = 1.4;
 
-const DENSITY_SCALE: Record<Density, number> = {
-  compact: 0.75,
+/**
+ * Density moves SPACING only, and its range is much tighter than type's.
+ *
+ * Spacing compounds: a page nests padding inside gap inside margin, so a 0.75
+ * multiplier is already three-quarters of every one of those in sequence. Below
+ * that, touch targets fall under the 44px floor `base.css` sets for coarse
+ * pointers, and the control that promised comfort takes it away.
+ */
+const DENSITY: Record<Density, number> = {
+  compact: 0.85,
   default: 1,
-  comfortable: 1.35,
-};
-
-/** The type ramp, by name, in rem at a 16px root — mirrors tokens/typography.css. */
-const TEXT: Record<string, number> = {
-  xs: 0.6875, sm: 0.8125, base: 0.875, lg: 1, xl: 1.125,
-  "2xl": 1.3125, "3xl": 1.625, "4xl": 2, "5xl": 2.5,
-  "6xl": 3.25, "7xl": 4, "8xl": 5.25, "9xl": 7,
-};
-
-/** The gap ramp, in rem — mirrors tokens/grid.css. */
-const GAP: Record<string, number> = {
-  "grid-gap-tight": 0.5,
-  "grid-gap": 1,
-  "grid-gap-loose": 1.5,
+  comfortable: 1.15,
 };
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
 /** Trim to 4dp so a multiplier cannot emit a 17-digit float into a stylesheet. */
-const rem = (n: number) => `${Math.round(n * 10000) / 10000}rem`;
+const round = (n: number) => String(Math.round(n * 10000) / 10000);
 
 /**
  * Is this a colour, or is it something being smuggled into a style attribute?
@@ -96,13 +96,11 @@ export function vars(p: Preference): Record<string, string> {
   const out: Record<string, string> = {};
 
   if (typeof p.type === "number" && Number.isFinite(p.type)) {
-    const k = clamp(p.type, TYPE_MIN, TYPE_MAX);
-    for (const [name, size] of Object.entries(TEXT)) out[`--text-${name}`] = rem(size * k);
+    out["--type-scale"] = round(clamp(p.type, TYPE_MIN, TYPE_MAX));
   }
 
-  if (p.density && p.density in DENSITY_SCALE) {
-    const k = DENSITY_SCALE[p.density];
-    for (const [name, size] of Object.entries(GAP)) out[`--${name}`] = rem(size * k);
+  if (p.density && p.density in DENSITY) {
+    out["--density"] = round(DENSITY[p.density]);
   }
 
   if (p.accent && isColor(p.accent)) {

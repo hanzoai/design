@@ -290,19 +290,25 @@
    — the two are the SAME scale, mirrored. A surface/tenant overrides any --text-*
    on :root to retune density on demand. */
 :root{
-  --text-xs:0.6875rem;  --leading-xs:1rem;      /* 11px — eyebrows / section labels */
-  --text-sm:0.8125rem;  --leading-sm:1.15rem;   /* 13px — nav labels, dense body */
-  --text-base:0.875rem; --leading-base:1.35rem; /* 14px — base app text (was 16px) */
-  --text-lg:0.9375rem;  --leading-lg:1.4rem;    /* 15px */
-  --text-xl:1.0625rem;  --leading-xl:1.55rem;   /* 17px */
-  --text-2xl:1.3125rem; --leading-2xl:1.7rem;   /* 21px */
-  --text-3xl:1.625rem;  --leading-3xl:1.95rem;  /* 26px */
-  --text-4xl:2rem;      --leading-4xl:2.25rem;  /* 32px */
-  --text-5xl:2.5rem;    --leading-5xl:1.05;     /* 40px */
-  --text-6xl:3.25rem;   --leading-6xl:1;        /* 52px */
-  --text-7xl:4rem;      --leading-7xl:1;        /* 64px */
-  --text-8xl:5.25rem;   --leading-8xl:1;        /* 84px */
-  --text-9xl:7rem;      --leading-9xl:1;        /* 112px */
+  /* The type knob. 1 is the published scale; every rung below multiplies by
+     it, so a surface or a person retunes the WHOLE ramp by setting one
+     number and no rung can drift out of relation with the others.
+     @hanzo/design's `vars({type})` emits exactly this name. */
+  --type-scale:1;
+
+  --text-xs:calc(0.6875rem * var(--type-scale, 1));  --leading-xs:calc(1rem * var(--type-scale, 1));      /* 11px — eyebrows / section labels */
+  --text-sm:calc(0.8125rem * var(--type-scale, 1));  --leading-sm:calc(1.15rem * var(--type-scale, 1));   /* 13px — nav labels, dense body */
+  --text-base:calc(0.875rem * var(--type-scale, 1)); --leading-base:calc(1.35rem * var(--type-scale, 1)); /* 14px — base app text (was 16px) */
+  --text-lg:calc(0.9375rem * var(--type-scale, 1));  --leading-lg:calc(1.4rem * var(--type-scale, 1));    /* 15px */
+  --text-xl:calc(1.0625rem * var(--type-scale, 1));  --leading-xl:calc(1.55rem * var(--type-scale, 1));   /* 17px */
+  --text-2xl:calc(1.3125rem * var(--type-scale, 1)); --leading-2xl:calc(1.7rem * var(--type-scale, 1));   /* 21px */
+  --text-3xl:calc(1.625rem * var(--type-scale, 1));  --leading-3xl:calc(1.95rem * var(--type-scale, 1));  /* 26px */
+  --text-4xl:calc(2rem * var(--type-scale, 1));      --leading-4xl:calc(2.25rem * var(--type-scale, 1));  /* 32px */
+  --text-5xl:calc(2.5rem * var(--type-scale, 1));    --leading-5xl:1.05;     /* 40px */
+  --text-6xl:calc(3.25rem * var(--type-scale, 1));   --leading-6xl:1;        /* 52px */
+  --text-7xl:calc(4rem * var(--type-scale, 1));      --leading-7xl:1;        /* 64px */
+  --text-8xl:calc(5.25rem * var(--type-scale, 1));   --leading-8xl:1;        /* 84px */
+  --text-9xl:calc(7rem * var(--type-scale, 1));      --leading-9xl:1;        /* 112px */
 
   /* The SAME scale under @hanzo/brand's spelling. @hanzo/gui's shell theme and
      Hanzo Studio address the ramp as --font-size-*; both names are one value, so
@@ -367,7 +373,7 @@
    form feels broken. pointer:coarse is the real signal — a desktop mouse keeps
    the compact 13px field. */
 @media (pointer:coarse){
-  :root{--text-control:1rem}
+  :root{--text-control:calc(1rem * var(--type-scale, 1))}
 }
 
 /* ── tokens/spacing.css ─────────────────────────────────────── */
@@ -375,21 +381,27 @@
    declared in hanzo.ai's tailwind.config.ts (legacy v3 config, kept for
    reference) — use it for editorial layouts, not for component padding. */
 :root{
+  /* The density knob. 1 is the published spacing; every --space-* rung below
+     multiplies by it, and --grid-gap-* reference those rungs rather than
+     restating them, so gaps, padding and section rhythm move together.
+     @hanzo/design's `vars({density})` emits exactly this name. */
+  --density:1;
+
   --space-0:0;
-  --space-1:0.25rem;
-  --space-2:0.5rem;
-  --space-3:0.75rem;
-  --space-4:1rem;
-  --space-5:1.25rem;
-  --space-6:1.5rem;
-  --space-8:2rem;
-  --space-10:2.5rem;
-  --space-12:3rem;
-  --space-14:3.5rem;
-  --space-16:4rem;
-  --space-20:5rem;
-  --space-24:6rem;
-  --space-32:8rem;
+  --space-1:calc(0.25rem * var(--density, 1));
+  --space-2:calc(0.5rem * var(--density, 1));
+  --space-3:calc(0.75rem * var(--density, 1));
+  --space-4:calc(1rem * var(--density, 1));
+  --space-5:calc(1.25rem * var(--density, 1));
+  --space-6:calc(1.5rem * var(--density, 1));
+  --space-8:calc(2rem * var(--density, 1));
+  --space-10:calc(2.5rem * var(--density, 1));
+  --space-12:calc(3rem * var(--density, 1));
+  --space-14:calc(3.5rem * var(--density, 1));
+  --space-16:calc(4rem * var(--density, 1));
+  --space-20:calc(5rem * var(--density, 1));
+  --space-24:calc(6rem * var(--density, 1));
+  --space-32:calc(8rem * var(--density, 1));
 
   /* golden ramp (φ) — hanzo.ai tailwind.config.ts */
   --golden-1:0.25rem;

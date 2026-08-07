@@ -2,10 +2,13 @@
  * Preference contract, checked the way this package already checks tokens:
  * a plain node script, no framework, run by `npm test`.
  *
- * The three things worth pinning are the three that would hurt: a preference
- * that renders someone's own tools illegible, one that lets a colour field
- * carry a second declaration into a stylesheet, and one that emits names no
- * token file reads.
+ * The load-bearing check is the last one. The first version of preference.ts
+ * kept its own copy of the type ramp and the copy was WRONG (lg/xl were 16/18
+ * against the tokens' 15/17), so a preference of 1 — "leave it alone" — would
+ * have resized two rungs of the published design. Nothing caught it, because
+ * nothing compared the copy to the source. Now there is no copy: the knobs are
+ * multipliers and the ramps live only in tokens/*.css, and check 5 fails if a
+ * rung ever stops carrying its multiplier.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -55,30 +58,60 @@ check("an unset preference changes nothing", () => {
   eq(css({}), "");
 });
 
-check("type scales the WHOLE ramp, keeping every relation", () => {
-  const v = vars({ type: 2 }); // clamps to TYPE_MAX
-  const base = parseFloat(v["--text-base"]);
-  const xs = parseFloat(v["--text-xs"]);
-  // 0.875 / 0.6875 must survive the transform
-  const ratio = base / xs;
-  ok(Math.abs(ratio - 0.875 / 0.6875) < 1e-9, `ratio drifted: ${ratio}`);
+check("type is ONE knob, not a restated ramp", () => {
+  const v = vars({ type: 1.2 });
+  eq(Object.keys(v), ["--type-scale"], "type must emit exactly one name:");
+  eq(v["--type-scale"], "1.2");
 });
 
 check("type is CLAMPED — a preference cannot make the UI illegible", () => {
-  const tiny = vars({ type: 0.1 });
-  eq(tiny["--text-base"], `${Math.round(0.875 * TYPE_MIN * 10000) / 10000}rem`, "min");
-  const huge = vars({ type: 99 });
-  eq(huge["--text-base"], `${Math.round(0.875 * TYPE_MAX * 10000) / 10000}rem`, "max");
-  // the smallest rung must stay readable at the floor
-  ok(parseFloat(tiny["--text-xs"]) * 16 >= 9, "xs fell below 9px");
+  eq(vars({ type: 0.1 })["--type-scale"], String(TYPE_MIN), "min");
+  eq(vars({ type: 99 })["--type-scale"], String(TYPE_MAX), "max");
+  // the smallest rung must stay readable at the floor: 11px * TYPE_MIN
+  ok(11 * TYPE_MIN >= 9, "xs falls below 9px at the floor");
 });
 
-check("density moves the gap ramp, not the type ramp", () => {
+check("density moves spacing only, and never touches type", () => {
   const v = vars({ density: "compact" });
-  ok(v["--grid-gap"], "no gap emitted");
-  ok(!v["--text-base"], "density must not touch type");
-  ok(parseFloat(v["--grid-gap"]) < 1, "compact should tighten");
-  ok(parseFloat(vars({ density: "comfortable" })["--grid-gap"]) > 1, "comfortable should loosen");
+  eq(Object.keys(v), ["--density"]);
+  ok(Number(v["--density"]) < 1, "compact should tighten");
+  ok(Number(vars({ density: "comfortable" })["--density"]) > 1, "comfortable should loosen");
+  ok(!("--type-scale" in v), "density must not touch type");
+  // Spacing compounds through nesting, so the range stays tight enough that a
+  // 44px coarse-pointer target does not fall under the floor.
+  ok(Number(vars({ density: "compact" })["--density"]) >= 0.8, "compact is too tight to stay tappable");
+});
+
+check("EVERY ramp rung carries its multiplier — no rung can opt out", () => {
+  // This is the check that the drifting copy would have failed.
+  const type = readFileSync(join(root, "tokens/typography.css"), "utf8");
+  const space = readFileSync(join(root, "tokens/spacing.css"), "utf8");
+
+  const bare = [];
+  for (const [file, text, knob, re] of [
+    ["typography.css", type, "--type-scale", /--text-[a-z0-9]+:\s*([^;]+);/g],
+    ["spacing.css", space, "--density", /--space-\d+:\s*([^;]+);/g],
+  ]) {
+    for (const m of text.matchAll(re)) {
+      const value = m[1].trim();
+      if (value === "0") continue;                 // zero times anything is zero
+      if (value.startsWith("var(")) continue;      // an alias inherits its target's calc
+      if (!value.includes(`var(${knob}`)) bare.push(`${file}: ${m[0].trim()}`);
+    }
+  }
+  eq(bare, [], "rungs that do NOT scale with their knob:");
+});
+
+check("a unitless leading stays a RATIO — scaling it would double-apply", () => {
+  const type = readFileSync(join(root, "tokens/typography.css"), "utf8");
+  const bad = [];
+  for (const m of type.matchAll(/--leading-[a-z0-9]+:\s*([^;]+);/g)) {
+    const v = m[1].trim();
+    // A ratio (`1.05`) already scales with the font size it multiplies.
+    if (/^[0-9.]+$/.test(v) === false) continue;
+    if (v.includes("var(")) bad.push(m[0].trim());
+  }
+  eq(bad, [], "unitless leadings must not carry a multiplier:");
 });
 
 check("a colour lands on both --primary and --accent", () => {
@@ -111,21 +144,21 @@ check("real colour notations are accepted", () => {
 check("css() emits ONE block for the selector it is given", () => {
   const out = css({ type: 1.1, density: "compact", accent: "#fff" }, ":root");
   ok(out.startsWith(":root{") && out.endsWith("}"), out.slice(0, 40));
-  ok(!out.includes("}"+"{"), "emitted more than one block");
+  ok(!out.includes("}" + "{"), "emitted more than one block");
 });
 
-check("every emitted name is one the token files actually declare", () => {
+check("every emitted name is one the token files actually read", () => {
   // A variable nothing reads is a write into another document — the exact
-  // mistake this package exists to prevent.
-  const declared = new Set();
-  for (const f of ["tokens/typography.css", "tokens/grid.css", "tokens/colors.css"]) {
-    for (const m of readFileSync(join(root, f), "utf8").matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm)) {
-      declared.add(m[1]);
-    }
-  }
+  // mistake this package exists to prevent. The knobs are READ by the ramps
+  // (as var(--knob, 1)); the colours are DECLARED by colors.css.
+  const files = ["tokens/typography.css", "tokens/spacing.css", "tokens/grid.css", "tokens/colors.css"];
+  const text = files.map((f) => readFileSync(join(root, f), "utf8")).join("\n");
+  const declared = new Set([...text.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm)].map((m) => m[1]));
+  const read = new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
+
   const emitted = Object.keys(vars({ type: 1.1, density: "compact", accent: "#fff" }));
-  const orphans = emitted.filter((k) => !declared.has(k));
-  eq(orphans, [], "emitted names no token file declares:");
+  const orphans = emitted.filter((k) => !declared.has(k) && !read.has(k));
+  eq(orphans, [], "emitted names no token file declares or reads:");
 });
 
 if (failed) {

@@ -32,7 +32,7 @@
   },
   "scripts": {
     "gen": "node scripts/gen-tokens.mjs",
-    "test": "node scripts/check-tokens.mjs && node scripts/lint.mjs .",
+    "test": "node scripts/check-tokens.mjs && node scripts/check-preference.mjs && node scripts/lint.mjs .",
     "build": "pnpm gen && pnpm test && tsc -p tsconfig.json",
     "prepublishOnly": "pnpm build",
     "lint": "node scripts/lint.mjs"

@@ -66,5 +66,5 @@ export function injectDesignCss(href: string): void {
 // A person's own reading of the system — type size, density, accent — as CSS
 // custom properties. Pure: it maps a preference to variables and returns them,
 // so an app, an embedded preview and a server render all apply it the same way.
-export { vars, css, isColor, TYPE_MIN, TYPE_MAX } from './preference';
-export type { Preference, Density } from './preference';
+export { vars, css, isColor, TYPE_MIN, TYPE_MAX } from './preference.js';
+export type { Preference, Density } from './preference.js';

@@ -10,6 +10,7 @@
 //   import { colors, spacing, radius, cssVar } from '@hanzo/design'  // the code layer
 //
 export * from './tokens.gen.js'
+export * from './brand.js'
 import { cssVars, type CssVarName } from './tokens.gen.js'
 
 /** A token name with the leading `--` omitted: `'background'` for `'--background'`. */

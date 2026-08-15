@@ -194,6 +194,64 @@ function lintFile(abs, root) {
   for (const m of src.matchAll(/['"]@hanzoai\/design/g))
     flag(rel, lineOf(src, m.index), 'wrong-package', '@hanzoai/design',
       'the package is @hanzo/design — @hanzoai/design is a 404 and resolves nothing')
+
+  // ── the four layers ────────────────────────────────────────────────────
+  // Rules 1-8 catch a surface writing a VALUE it should have named. These four
+  // catch a surface OWNING something it should have imported, which is the
+  // failure that costs a fleet its coherence rather than a component its
+  // colour. The estate has exactly four layers and every surface is meant to
+  // be pure composition over them:
+  //
+  //     values     -> @hanzo/design     tokens, the ramp, the ladder
+  //     structure  -> @hanzo/gui        the primitives things are built from
+  //     chrome     -> @hanzogui/shell   header, search, nav, launcher, footer
+  //     components -> @hanzo/ui         everything assembled from the above
+  //
+  // A surface holds data and layout. Nothing else. Each rule below is one of
+  // those four layers being re-implemented locally, and each has shipped:
+  // hanzo.ai carried a 244-line token table that disagreed with the canon on
+  // nearly every rung; hanzo.app loaded @hanzo/brand's sheet ahead of the one
+  // that owns the same names; both drew their own search control.
+
+  // 9. ONE table binds the ramp. `createGui`/`createTokens`/`createFont` is
+  //    that binding, it lives in @hanzo/ui, and a second one is not a second
+  //    opinion — every @hanzo/ui component asks the HOST's table for its
+  //    sizes, so one library renders at two sizes depending on the site.
+  for (const m of src.matchAll(/\b(createGui|createTokens|createFont|createThemes)\s*\(/g))
+    flag(rel, lineOf(src, m.index), 'local-token-table', `${m[1]}()`,
+      "import the fleet's table — `export { config as default } from '@hanzo/ui/gui-config'`")
+
+  // 10. ONE publisher per token name. A surface that declares a name design
+  //     already declares has entered a fight decided by LOAD ORDER, which is
+  //     not a decision anyone made. (Declaring your own new name is fine —
+  //     that is what a surface-specific token IS. This is only collision.)
+  //
+  //     A DECLARATION, never a mention. In a stylesheet that is `--x:` at the
+  //     top of a declaration; in JS it is a QUOTED key, which is the only way a
+  //     custom property can be set from there. Matching the bare name in JS
+  //     read every comment explaining WHICH token to use as a redeclaration of
+  //     it — this package's own Button and Card, whose comments are the
+  //     reasoning for reaching one rung over another.
+  for (const m of src.matchAll(isStyle ? /(?:^|[\s;{])--([A-Za-z0-9-]+)\s*:/g : /['"]--([A-Za-z0-9-]+)['"]\s*:/g))
+    if (TOKENS.has(m[1]))
+      flag(rel, lineOf(src, m.index), 'redeclared-token', `--${m[1]}`,
+        'the name is @hanzo/design\'s — read it with var(), or pick a name of your own')
+
+  // 11. a SECOND sheet of the same tokens. Two publishers is how a ramp drifts:
+  //     the loser is silent, and which one loses depends on import order.
+  for (const m of src.matchAll(
+    /from\s+['"]([^'"]*(?:@hanzo\/brand\/styles|@hanzogui\/themes|tailwindcss\/theme|cdn\.tailwindcss\.com|fonts\.googleapis)[^'"]*)['"]|import\s+['"]([^'"]*(?:@hanzo\/brand\/styles|cdn\.tailwindcss\.com|fonts\.googleapis)[^'"]*)['"]/g))
+    flag(rel, lineOf(src, m.index), 'second-publisher', m[1] ?? m[2],
+      '@hanzo/design is the token layer; @hanzo/ui/theme.css or /glass.css carries the material')
+
+  // 12. the chrome is the shell's. A header, a search control, a product menu,
+  //     an org switcher, an app launcher and a footer are ONE set of controls
+  //     across every Hanzo surface — that is what makes them recognisable as
+  //     one product. A local copy is a control that drifts by a release.
+  for (const m of src.matchAll(
+    /\b(?:function|const)\s+(Hanzo?(?:Header|Footer)|(?:Site|App|Global|Main|Top)(?:Header|Nav|Footer|Bar)|(?:Header|Nav|Command|Search)(?:Search|Palette|Trigger|Bar)|OrgSwitcher|OrgHeader|AppLauncher|MegaMenu)\b/g))
+    flag(rel, lineOf(src, m.index), 'shell-owned-chrome', m[1],
+      'import it from @hanzogui/shell — the chrome is one set of controls, fleet-wide')
 }
 
 // ── run ──────────────────────────────────────────────────────────────────
@@ -202,17 +260,62 @@ const roots = targets.length ? targets : [process.cwd()]
 let scanned = 0
 for (const r of roots) for (const f of walk(r)) { scanned++; lintFile(f, r === f ? dirname(r) : r) }
 
-const RULES = ['unresolved-token', 'raw-color', 'raw-z-index', 'raw-font-size', 'all-caps', 'inline-style', 'icon-set', 'wrong-package']
-if (!findings.length) {
-  console.log(`hanzo-design-lint: ${scanned} files, clean`)
-  process.exit(0)
-}
+const RULES = [
+  'unresolved-token', 'raw-color', 'raw-z-index', 'raw-font-size', 'all-caps',
+  'inline-style', 'icon-set', 'wrong-package',
+  'local-token-table', 'redeclared-token', 'second-publisher', 'shell-owned-chrome',
+]
+
+/**
+ * THE RATCHET — `hanzo-design.allow.json`, beside the code being linted.
+ *
+ * A gate that can only pass on a perfect tree cannot be turned on, and a gate
+ * nobody turns on prevents nothing. So a surface declares what it currently
+ * owes, per rule, and the number MAY ONLY SHRINK. Every new violation fails the
+ * build on the day it is written; the backlog burns down on its own schedule.
+ *
+ *   { "raw-color": 412, "redeclared-token": 6 }
+ *
+ * A count that comes in UNDER its allowance fails too, and that is the ratchet
+ * rather than a threshold: the fix has to delete its own exemption in the same
+ * commit, or the next author inherits room to regress into. The same discipline
+ * hanzo.ai's `audit-catalog.mjs` holds its KNOWN_UNSERVED list to.
+ *
+ * A rule with no entry is allowed ZERO, so a new rule is live everywhere the
+ * day it ships and no surface has to opt in.
+ *
+ * It is read from the WORKING DIRECTORY, not from the paths being linted. Every
+ * real invocation is a package script (`hanzo-design-lint components app`), so
+ * the cwd is the surface's root — one place, whatever subtrees are named, and
+ * nothing to derive from a list of arguments that may be files or directories.
+ */
+const RATCHET = 'hanzo-design.allow.json'
+let allow = {}
+try { allow = JSON.parse(readFileSync(join(process.cwd(), RATCHET), 'utf8')) } catch { /* none: everything is zero */ }
+
+const count = Object.fromEntries(RULES.map((r) => [r, findings.filter((f) => f.rule === r).length]))
+const over = RULES.filter((r) => count[r] > (allow[r] ?? 0))
+const under = RULES.filter((r) => count[r] < (allow[r] ?? 0))
+
 for (const rule of RULES) {
   const hits = findings.filter((f) => f.rule === rule)
   if (!hits.length) continue
-  console.log(`\n${rule}  (${hits.length})  — ${hits[0].fix}`)
+  const owed = allow[rule] ?? 0
+  const verdict = count[rule] > owed ? `NEW — allowed ${owed}` : `at the allowance (${owed})`
+  console.log(`\n${rule}  (${hits.length}, ${verdict})  — ${hits[0].fix}`)
   for (const h of hits.slice(0, 20)) console.log(`  ${h.file}:${h.line}  ${h.detail}`)
   if (hits.length > 20) console.log(`  … ${hits.length - 20} more`)
 }
+
+if (!over.length && !under.length) {
+  const owed = Object.values(allow).reduce((a, b) => a + b, 0)
+  console.log(`hanzo-design-lint: ${scanned} files, clean${owed ? ` (${owed} allowed by ${RATCHET})` : ''}`)
+  process.exit(0)
+}
+for (const r of over)
+  console.log(`\n  ${r}: ${count[r]} found, ${allow[r] ?? 0} allowed — a NEW violation. Fix it.`)
+for (const r of under)
+  console.log(`\n  ${r}: ${count[r]} found, ${allow[r] ?? 0} allowed — you fixed ${(allow[r] ?? 0) - count[r]}. ` +
+    `Lower it in ${RATCHET}; the allowance only shrinks.`)
 console.log(`\n${findings.length} violation(s) across ${scanned} files`)
 process.exit(1)

@@ -291,10 +291,18 @@ const RULES = [
  *
  *   { "raw-color": 412, "redeclared-token": 6 }
  *
- * A count that comes in UNDER its allowance fails too, and that is the ratchet
- * rather than a threshold: the fix has to delete its own exemption in the same
- * commit, or the next author inherits room to regress into. The same discipline
- * hanzo.ai's `audit-catalog.mjs` holds its KNOWN_UNSERVED list to.
+ * A count UNDER its allowance is REPORTED, loudly, and does not fail. That was
+ * the other way round for one release and it froze hanzo.app's: the count a tree
+ * produces is not identical everywhere — a working copy holds files a fresh
+ * checkout does not — so an allowance that has to match EXACTLY turns a
+ * difference of environment into a red release. Every gate this package exists
+ * to add has to be worth more than the shipping it stops, and a stale number is
+ * never worth that.
+ *
+ * So: over the allowance FAILS — that violation was written today and there is
+ * nothing environmental about it. Under it prints the number to write down. The
+ * ratchet is still a ratchet, because the allowance can only be lowered by hand
+ * and this line tells you exactly what to lower it to.
  *
  * A rule with no entry is allowed ZERO, so a new rule is live everywhere the
  * day it ships and no surface has to opt in.
@@ -333,15 +341,16 @@ if (unknown.length) {
   process.exit(1)
 }
 
-if (!over.length && !under.length) {
+for (const r of under)
+  console.log(`  ${r}: ${count[r]} found against ${allow[r] ?? 0} allowed — ${(allow[r] ?? 0) - count[r]} fixed. ` +
+    `Lower it to ${count[r]} in ${RATCHET}.`)
+
+if (!over.length) {
   const owed = RULES.reduce((a, r) => a + (allow[r] ?? 0), 0)
   console.log(`hanzo-design-lint: ${scanned} files, clean${owed ? ` (${owed} allowed by ${RATCHET})` : ''}`)
   process.exit(0)
 }
 for (const r of over)
   console.log(`\n  ${r}: ${count[r]} found, ${allow[r] ?? 0} allowed — a NEW violation. Fix it.`)
-for (const r of under)
-  console.log(`\n  ${r}: ${count[r]} found, ${allow[r] ?? 0} allowed — you fixed ${(allow[r] ?? 0) - count[r]}. ` +
-    `Lower it in ${RATCHET}; the allowance only shrinks.`)
 console.log(`\n${findings.length} violation(s) across ${scanned} files`)
 process.exit(1)

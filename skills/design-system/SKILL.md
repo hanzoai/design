@@ -43,7 +43,9 @@ Then reach for a **name**, never a value:
 | You want | Use | Never |
 |---|---|---|
 | a page / text | `--background`, `--foreground`, `--text-secondary` | `#000`, `#fff`, `rgb(…)` |
-| a card, a panel | `--surface-card`, `--border-hairline` | a hand-mixed grey |
+| a card, a panel | `--surface-card`, `--border` | a hand-mixed grey |
+| depth — a tool over the workspace | `--sheet-1` + `--shadow-sheet-1` | a box round both, or your own `box-shadow` |
+| "this expands" | `--fold-face` | a fold as ornament |
 | rank / emphasis | the ladder `--white-05 … --white-80` | an off-ladder 12% or 37% |
 | a size | `--type-body`, `--type-h2`, `--text-sm` | `font-size: 13px` |
 | space | `--space-*`, `--gutter*`, `--container-max` | `padding: 13px` |

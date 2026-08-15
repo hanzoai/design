@@ -162,10 +162,15 @@ Three properties hold it together:
 - **One light, above.** Every shadow is `0 <y> …`; `check-tokens.mjs` fails the
   build on a sideways offset, because the defect is invisible per-component and
   only the whole screen stops making sense.
-- **Nothing is restated in `.light`.** Every part defers to a token that already
-  flips (`--surface-card*`, `--edge-highlight`, `--shadow-*`, `--glass-strong`,
-  `--border-strong`), so the ramp inverts for free — and check 4 stops expanding
-  at exactly those tokens.
+- **The tints and the fold defer, so they invert for free** — `--surface-card*`,
+  `--glass-strong`, `--border-strong`, `--edge-highlight` all flip underneath,
+  and check 4 stops expanding at exactly those. The two SHADOW rungs spell their
+  drops out instead, and that is what makes the ladder shareable: `--shadow-sm`
+  is a name this package does not own (`@hanzo/brand` declares it at `:root` for
+  a white canvas and load order decides), so a rung built on one is a rung
+  somebody else can flatten. `--shadow-sheet-*` is ours alone — which is why
+  `@hanzo/ui`'s `.elevation-1/2` can read it rather than keep a private copy.
+  The numbers ARE rung 1 and rung 2 of the ramp; move one, move both.
 
 The tints are the surface recipes, not new values, so sheets stack the way paper
 does: each is an alpha-white wash, one laid on another lands a step lighter, and

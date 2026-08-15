@@ -75,8 +75,18 @@
   --sheet-0:var(--surface-page);            /* the workspace ground             */
   --sheet-1:var(--surface-card);            /* an active tool                   */
   --sheet-2:var(--surface-card-emphasis);   /* what opened, or what is inside   */
-  --shadow-sheet-1:var(--edge-highlight),var(--shadow-md);
-  --shadow-sheet-2:var(--edge-highlight),var(--shadow-lg);
+  /* The drops are spelled out rather than read from the t-shirt ramp above, and
+     that is the whole reason this ladder can be shared. `--shadow-sm` is a name
+     this package does not own — @hanzo/brand declares the same names at :root
+     with white-canvas alphas, and load order decides who wins — so a rung built
+     on one is a rung somebody else can flatten. `--shadow-sheet-*` is ours
+     alone, which is what lets @hanzo/ui's `.elevation-*` read it instead of
+     keeping a private copy. The numbers ARE rung 1 and rung 2 of the ramp; if
+     one moves, move both. `--edge-highlight` stays deferred: it is role-named,
+     uncollided, and its `.light` zeroing is what makes one value work on both
+     canvases. */
+  --shadow-sheet-1:var(--edge-highlight),0 1px 2px 0 rgb(0 0 0 / .40);
+  --shadow-sheet-2:var(--edge-highlight),0 10px 15px -3px rgb(0 0 0 / .55),0 4px 6px -4px rgb(0 0 0 / .55);
 
   /* The fold — a corner turned back, and the one mark that means THIS OPENS.
      Ornament nowhere: a sheet that does not expand does not wear one.
@@ -120,6 +130,11 @@
    costs nothing. */
 .light{
   --shadow-floating:0 24px 60px -16px rgb(0 0 0 / .18);
+  /* On white the drop does all of it, so the paper rungs are restated here even
+     though check 4 does not demand it — their white is inside --edge-highlight,
+     which flips underneath. Rung 1 and rung 2 of the light ramp, same as dark. */
+  --shadow-sheet-1:var(--edge-highlight),0 1px 2px 0 rgb(0 0 0 / .06);
+  --shadow-sheet-2:var(--edge-highlight),0 10px 15px -3px rgb(0 0 0 / .09),0 4px 6px -4px rgb(0 0 0 / .07);
   --shadow-inset-hairline:inset 0 0 0 1px rgb(0 0 0 / .10);
   --edge-highlight:inset 0 0 0 0 transparent;
   --bloom:0 6px 20px -4px rgb(0 0 0 / .18);

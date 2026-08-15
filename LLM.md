@@ -239,11 +239,18 @@ where every package script runs), and **the number may only SHRINK**:
 { "raw-color": 412, "redeclared-token": 6 }
 ```
 
-Over the allowance fails — that violation was written today. **Under it fails
-too**, and that is what makes it a ratchet rather than a threshold: the fix has
-to delete its own exemption in the same commit, or the next author inherits room
-to regress into. A rule with no entry is allowed ZERO, so a new rule is live
-everywhere the day it ships and nobody has to opt in.
+Over the allowance FAILS — that violation was written today. **Under it is
+REPORTED and passes**, naming the number to write down. It failed for one
+release, and that froze hanzo.app's inside an hour: install, typecheck and 1,641
+tests green, the design gate red in one second, `build-amd64` skipped, no image
+cut for a commit with nothing wrong in it. The count a tree produces is not
+identical everywhere — a working copy holds files a fresh checkout does not — so
+an allowance that must match EXACTLY turns a difference of environment into a red
+release, which is the same shape as the chart gate that stopped hanzo.ai
+publishing that morning. A gate that stops the shipping is worth less than the
+shipping. It is still a ratchet: the allowance moves only by hand, and the line
+says exactly what to move it to. A rule with no entry is allowed ZERO, so a new
+rule is live everywhere the day it ships and nobody has to opt in.
 
 ## Notes
 - `--ring` sits at 3.67:1 (dark) / 3.85:1 (light) against its worst-case

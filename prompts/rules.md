@@ -33,7 +33,9 @@ token or pattern that makes the "do" trivial.
 |----|-------|
 | One primary (white) action per view; everything else outline or ghost. | Two competing primary buttons. |
 | Plain `<a>` / `<Link>` with className, or the shipped `<Button>`. | `<Button asChild>` — it breaks the build under React 18 strict children. |
-| Elevation as a hairline border + `--shadow-floating` only when floating. | Drop shadows on flat, in-flow cards. |
+| Separate two surfaces by RAISING one — `--sheet-1` + `--shadow-sheet-1`. | Outlining both, then raising one anyway. |
+| A level because the surface means something: workspace, tool, opened. | A drop shadow for looks, or a second lamp — every shadow drops straight down. |
+| A fold (`--fold-face`) only where the item expands. | A fold as ornament. |
 
 ## Motion
 

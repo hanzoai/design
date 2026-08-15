@@ -140,6 +140,37 @@ All of them are white, so all of them are restated in `.light` — including
 because `none` is not a legal layer in a comma list and would invalidate the
 whole declaration, taking the drop shadow with it.
 
+## Paper — depth carries state
+The parts above are the physics. The **paper ramp** is the vocabulary built on
+them, and it is what a product actually reaches for: three levels, each a tint
+AND the light on it, so a surface asks for a level instead of composing its own
+shadow.
+
+| level | tint | light | means |
+|---|---|---|---|
+| 0 | `--sheet-0` | none | the workspace ground |
+| 1 | `--sheet-1` | `--shadow-sheet-1` | an active tool — the transcript, a panel |
+| 2 | `--sheet-2` | `--shadow-sheet-2` | what opened, or what sits inside |
+
+Plus `--fold` / `--fold-face`: a corner turned back, painted as a
+`background-image` on the sheet itself (no element, no pseudo-element), square
+that corner, and spend it ONLY where the item expands.
+
+Three properties hold it together:
+- **Raise before you outline.** If two surfaces need separating, lift one. A
+  raised surface does not also get a box drawn round it.
+- **One light, above.** Every shadow is `0 <y> …`; `check-tokens.mjs` fails the
+  build on a sideways offset, because the defect is invisible per-component and
+  only the whole screen stops making sense.
+- **Nothing is restated in `.light`.** Every part defers to a token that already
+  flips (`--surface-card*`, `--edge-highlight`, `--shadow-*`, `--glass-strong`,
+  `--border-strong`), so the ramp inverts for free — and check 4 stops expanding
+  at exactly those tokens.
+
+The tints are the surface recipes, not new values, so sheets stack the way paper
+does: each is an alpha-white wash, one laid on another lands a step lighter, and
+the stack converges on `#262626` instead of blowing out.
+
 ## Mobile
 Defaults are mobile-first and cost an app nothing:
 `--space`/`--section-y`/`--header-height` are authored at PHONE values and scale

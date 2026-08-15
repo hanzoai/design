@@ -302,5 +302,31 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   }
 }
 
+// ── 5. one light, from one direction ─────────────────────────────────────
+// The paper ramp reads as one space only while every edge and every drop in
+// the system agrees where the light is. A single `2px 4px` — the spelling
+// every other library ships — puts a second lamp in the room, and the failure
+// is not visible on any one component: the panel with the offset shadow looks
+// fine, and it is the SCREEN that stops making sense. So the rule is checked
+// on the values instead of trusted to whoever writes the next one: the light
+// is directly above, so a shadow moves down and never sideways.
+//
+// Structural, not by name — a layer counts as a shadow when its first two
+// lengths are lengths, which is what a shadow is and what a size is not.
+{
+  const css = strip(read(join(tokensDir, 'elevation.css')))
+  const LEN = /^-?[\d.]+(px|rem|em)?$/
+  const offenders = []
+  for (const [, name, value] of css.matchAll(/--([A-Za-z0-9-]+)\s*:\s*([^;]+);/g))
+    for (const layer of value.split(',')) {
+      const t = layer.trim().replace(/^inset\s+/, '').split(/\s+/)
+      if (LEN.test(t[0]) && LEN.test(t[1] ?? '') && parseFloat(t[0]) !== 0)
+        offenders.push(`--${name} (${layer.trim()})`)
+    }
+  offenders.length
+    ? offenders.forEach((o) => fail(`${o} is offset sideways — the light is above, so every shadow is \`0 <y> …\``))
+    : pass('one light direction — every shadow in elevation.css drops straight down')
+}
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nall token checks passed')
 process.exit(failures ? 1 : 0)

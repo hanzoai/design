@@ -189,6 +189,62 @@ pseudo-element while the 16px box is untouched, and renders fields at
 inline, and an inline style outranks any stylesheet — a var() is the only thing
 that reaches them.
 
+## The four layers, and the gate that holds them
+
+The estate has exactly four layers, and a surface is meant to be pure
+composition over them — data and layout, no design decisions:
+
+| layer | package | owns |
+|---|---|---|
+| values | **@hanzo/design** | tokens, the type ramp, the space ramp, the paper ladder |
+| structure | **@hanzo/gui** | the primitives everything is built from |
+| chrome | **@hanzogui/shell** | header, search, product nav, launcher, footer |
+| components | **@hanzo/ui** | everything assembled from the three above — and the ONE `createGui` table (`@hanzo/ui/gui-config`) that binds the ramp to gui's `$n` |
+
+`hanzo-design-lint` is the gate. Rules 1-8 catch a surface writing a VALUE it
+should have named; **rules 9-12 catch a surface OWNING a layer it should have
+imported**, which is the failure that costs a fleet its coherence rather than a
+component its colour. Each has shipped:
+
+- **`local-token-table`** — a second `createGui`/`createTokens`/`createFont`.
+  Every `@hanzo/ui` component asks the HOST's table for its sizes, so a second
+  table means one library renders at two sizes depending on the site. hanzo.ai
+  carried a 244-line one on `@hanzogui/config/v4` while the fleet was on v5, and
+  it disagreed with the canon on nearly every rung: `$4` 14 vs 15, `$9` 32 vs 26,
+  `$12` 64 vs 48, `$14` 112 vs 64.
+- **`redeclared-token`** — a surface declaring a name this package declares. That
+  is a fight decided by LOAD ORDER, which is not a decision anyone made. A NEW
+  name of your own is fine; this is collision only. It is a DECLARATION, never a
+  mention — in CSS `--x:` at the head of a declaration, in JS a quoted key,
+  because matching the bare name read every comment about which rung to use as a
+  redeclaration of it.
+- **`second-publisher`** — a second sheet of the same tokens. `@hanzo/brand`'s
+  `styles/variables.css` loaded ahead of this one in hanzo.app: 136 names with no
+  knob under any of them and a `--shadow-*` ramp tuned for a WHITE canvas
+  (.05/.1 against this one's .40/.55), so wherever load order let it win, a panel
+  was flat.
+- **`shell-owned-chrome`** — a local header, search control, product menu, org
+  switcher, launcher or footer. One set of controls fleet-wide is what makes them
+  read as one product; a copy drifts by a release. hanzo.ai and hanzo.app drew
+  two different search controls from the same shell.
+
+### The ratchet — `hanzo-design.allow.json`
+
+A gate that can only pass on a perfect tree never gets turned on, and a gate
+nobody turns on prevents nothing. So a surface declares what it currently owes,
+per rule, in `hanzo-design.allow.json` at its root (read from the CWD, which is
+where every package script runs), and **the number may only SHRINK**:
+
+```json
+{ "raw-color": 412, "redeclared-token": 6 }
+```
+
+Over the allowance fails — that violation was written today. **Under it fails
+too**, and that is what makes it a ratchet rather than a threshold: the fix has
+to delete its own exemption in the same commit, or the next author inherits room
+to regress into. A rule with no entry is allowed ZERO, so a new rule is live
+everywhere the day it ships and nobody has to opt in.
+
 ## Notes
 - `--ring` sits at 3.67:1 (dark) / 3.85:1 (light) against its worst-case
   neighbour, `--secondary`. It is the only gated pair in the system.

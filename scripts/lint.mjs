@@ -307,8 +307,19 @@ for (const rule of RULES) {
   if (hits.length > 20) console.log(`  … ${hits.length - 20} more`)
 }
 
+// A key that is not a rule allows NOTHING, and the author who wrote it believes
+// they filed an exemption — the same silent failure this whole file exists to
+// end. Keys starting with `_` are prose and are skipped, so the file can explain
+// itself without inventing a second format.
+const unknown = Object.keys(allow).filter((k) => !k.startsWith('_') && !RULES.includes(k))
+if (unknown.length) {
+  console.log(`\n  ${RATCHET} names ${unknown.length} thing(s) that are not rules: ${unknown.join(', ')}`)
+  console.log(`  the rules are: ${RULES.join(', ')}`)
+  process.exit(1)
+}
+
 if (!over.length && !under.length) {
-  const owed = Object.values(allow).reduce((a, b) => a + b, 0)
+  const owed = RULES.reduce((a, r) => a + (allow[r] ?? 0), 0)
   console.log(`hanzo-design-lint: ${scanned} files, clean${owed ? ` (${owed} allowed by ${RATCHET})` : ''}`)
   process.exit(0)
 }

@@ -73,8 +73,14 @@ That is not Hanzo. Make it white-on-black and let the content carry it.
 
 - `--radius-sm` on buttons/inputs, `--radius-lg` on cards, `--radius-full` on
   pills and avatars. `--radius-composer` (28px) only for the chat composer.
-- Hanzo barely uses shadow. On black, elevation is a hairline border plus, for
-  truly floating surfaces, `--shadow-floating`. Heroes get one ambient
+- Depth is the hierarchy. Three levels of paper: `--sheet-0` is the workspace,
+  `--sheet-1` an active tool, `--sheet-2` what opened — each with the matching
+  `--shadow-sheet-*`, which carries the top edge-light and the drop together.
+  Raise a surface before you outline it, and never do both.
+- One light, above: every shadow in the system is `0 <y> …`. A sideways offset
+  is a second lamp, and the screen stops reading as one space.
+- `--fold-face` marks an item that expands, and nothing else. `--shadow-floating`
+  is for what actually floats — menus, dialogs. Heroes get one ambient
   `--glow-hero` radial, nothing more.
 
 ## Motion

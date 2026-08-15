@@ -53,6 +53,41 @@
   --shadow-lg:0 10px 15px -3px rgb(0 0 0 / .55), 0 4px 6px -4px rgb(0 0 0 / .55);
   --shadow-xl:0 20px 25px -5px rgb(0 0 0 / .60), 0 8px 10px -6px rgb(0 0 0 / .60);
   --shadow-2xl:var(--shadow-floating);
+
+  /* ——— the paper ——— */
+  /* Depth carries STATE, not decoration: which sheet is the workspace, which is
+     the tool in use, which one opened. Reach for a level before a border — if
+     two surfaces need separating, RAISE one rather than outline both, and a
+     surface that is already raised does not also need a box drawn round it.
+
+     A level is a tint AND the light on it, published as a pair, because the
+     alternative — every component composing its own `--edge-highlight,
+     --shadow-*` — is how two panels on one screen end up lit from two
+     directions. Every rung here is pure vertical: a 1px inset line along the
+     top edge, a drop straight down. One origin, above and slightly in front.
+
+     The tints are the surface recipes rather than new values, so sheets stack
+     the way paper does: each is an alpha-white wash, one laid on another lands
+     a step lighter, and the stack converges on #262626 instead of blowing out.
+
+     Nothing here is restated in `.light`, deliberately: every part defers to a
+     token that already flips, so the ramp inverts with the theme for free. */
+  --sheet-0:var(--surface-page);            /* the workspace ground             */
+  --sheet-1:var(--surface-card);            /* an active tool                   */
+  --sheet-2:var(--surface-card-emphasis);   /* what opened, or what is inside   */
+  --shadow-sheet-1:var(--edge-highlight),var(--shadow-md);
+  --shadow-sheet-2:var(--edge-highlight),var(--shadow-lg);
+
+  /* The fold — a corner turned back, and the one mark that means THIS OPENS.
+     Ornament nowhere: a sheet that does not expand does not wear one.
+     It is a background-image, so it costs no element and no pseudo-element —
+     paint it on the sheet itself and square that corner
+     (`border-bottom-right-radius:0`), because a folded corner is not round.
+     The flap catches the light like every other surface; the crease is the
+     hairline; both defer, so both invert. */
+  --fold:12px;
+  --fold-face:linear-gradient(315deg,var(--glass-strong) 0,var(--glass-strong) calc(var(--fold) - 1px),var(--border-strong) calc(var(--fold) - 1px),var(--border-strong) var(--fold),transparent var(--fold)); /* @kind color */
+
   /* Ambient hero glow — a single white radial, blurred 120px, low opacity. */
   --glow-hero:radial-gradient(circle,rgb(255 255 255 / .12) 0%,transparent 68%); /* @kind color */
   --glow-hero-blur:120px;

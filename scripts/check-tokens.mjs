@@ -328,5 +328,30 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
     : pass('one light direction — every shadow in elevation.css drops straight down')
 }
 
+// ── 6. the TS table is arithmetic, not CSS ───────────────────────────────
+// `--text-xs` is `calc(0.6875rem * var(--type-scale, 1))` in the sheet, which is
+// how one property retunes the whole ramp. Emitting that string into the
+// programmatic table too shipped a value no JavaScript can use: a consumer
+// computing with it gets NaN, silently, and a consumer writing it into an inline
+// style outranks every stylesheet.
+//
+// It happened. hanzo.ai's accuracy-at-cost scatter sizes SVG text by
+// `parseFloat(typography['text-xs']) * 16`; against 0.5.x every label measured NaN,
+// the placement pass could not seat a single one, and the chart gate went red —
+// which, because the gates run in the publishing job, froze the whole SITE.
+//
+// So the generator unwraps a knob (`scale()` in gen-tokens.mjs) and this holds it:
+// the knob belongs to the cascade, the value belongs to the table, and neither may
+// take the other's job. styles.css is generated from the CSS directly, so the
+// runtime knob is untouched — this only governs what JavaScript is handed.
+{
+  const gen = read(join(root, 'src', 'tokens.gen.ts'))
+  const offenders = [...gen.matchAll(/'([^']+)': '([^']*var\(--(?:type-scale|density)[^']*)'/g)]
+  offenders.length
+    ? offenders.forEach(([, n, v]) =>
+        fail(`${n} is emitted as \`${v}\` — a knob cannot be resolved in JS; the table carries the value`))
+    : pass('the generated table carries values, not knobs — every length parses as a number')
+}
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nall token checks passed')
 process.exit(failures ? 1 : 0)

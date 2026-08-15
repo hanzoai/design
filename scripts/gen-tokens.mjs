@@ -33,6 +33,29 @@ function parse(css) {
 // light `@media`/`[data-theme]` override carry the SAME name. Keep the FIRST
 // occurrence (dark, the default theme): the static map is the authored default;
 // live theme switching happens through the CSS cascade via cssVar()/var(--x).
+/**
+ * A knob is CSS's, so the TS table publishes the VALUE and leaves the knob behind.
+ *
+ * `--text-xs` and `--space-1` are authored as `calc(0.6875rem * var(--type-scale, 1))`
+ * so one property retunes the whole ramp at runtime. That is right in a stylesheet
+ * and unusable in JavaScript twice over: nothing in JS can resolve a `var()`, so a
+ * consumer computing with the value gets NaN, and a consumer writing it into an
+ * inline style outranks every stylesheet — which is the one thing this package
+ * spends its whole cascade avoiding.
+ *
+ * So the two facts braided into that one string are separated here. The value is
+ * the ramp; the knob is the cascade's, and `styles.css` is generated straight from
+ * the CSS, so it keeps the calc and the runtime knob still works. `cssVar()`'s
+ * fallback gets the literal too, which is what a host with no token layer mounted
+ * actually wants — there is no `--type-scale` there either.
+ *
+ * The shape is exact (`calc(<value> * var(--<knob>, 1))`) and only that shape is
+ * unwrapped; a genuinely composite calc (`calc(var(--fold) - 1px)`) is untouched.
+ * check-tokens.mjs holds it: no emitted value may name a knob.
+ */
+const KNOB = /^calc\(\s*([^*]+?)\s*\*\s*var\(--(?:type-scale|density),\s*1\)\s*\)$/
+const scale = (v) => v.match(KNOB)?.[1] ?? v
+
 const groupMaps = {} // groupName -> Map(name->value), first-wins
 const flatMap = new Map() // '--name' -> value, first-wins
 for (const f of FILES) {
@@ -44,7 +67,8 @@ for (const f of FILES) {
   }
   const g = GROUP[f] ?? f
   const gm = (groupMaps[g] ??= new Map())
-  for (const [n, v] of parse(css)) {
+  for (const [n, v0] of parse(css)) {
+    const v = scale(v0)
     if (!gm.has(n)) gm.set(n, v)
     if (!flatMap.has(`--${n}`)) flatMap.set(`--${n}`, v)
   }

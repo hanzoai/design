@@ -79,20 +79,39 @@
   /* ——— the opacity ladder: the real palette ——— */
   /* Every rung below .30 is a HAIRLINE or a LIFT — the two things this system
      draws with. The rungs are the reference's own values, not a rounded ramp. */
+  /* The five rungs marked (chrome) below were being retyped as raw rgba in
+     @hanzogui/shell's theme.ts, which is the shared bar every Hanzo property
+     mounts. That is the same defect this ladder exists to end — a value in two
+     places drifts, and this pair already had: the shell's resting hairline sat
+     at .06 against this file's .10 for long enough that the bar and the page
+     under it drew different hairlines. They are rungs here now, and the shell
+     references them, so the chrome has no colour of its own left to drift.
+
+     They are the shell's OWN measured values, added at the alpha it already
+     ships. Snapping them to neighbouring rungs instead would have been a
+     silent redesign of the estate's chrome, and two of them carry decisions
+     that a round number would have destroyed: .92 is ink deliberately short of
+     the .98 hover so a hover still reads as a response, and .03 is the one
+     lift that must stay below the .05 hairline it sits inside. */
+  --white-03:rgb(255 255 255 / .03);   /* (chrome) the raised fill  */
   --white-05:rgb(255 255 255 / .05);
   --white-06:rgb(255 255 255 / .06);
   --white-08:rgb(255 255 255 / .08);
   --white-10:rgb(255 255 255 / .10);
+  --white-14:rgb(255 255 255 / .14);   /* (chrome) selection wash   */
   --white-15:rgb(255 255 255 / .15);
   --white-16:rgb(255 255 255 / .16);
+  --white-18:rgb(255 255 255 / .18);   /* (chrome) selection tint   */
   --white-20:rgb(255 255 255 / .20);
   --white-22:rgb(255 255 255 / .22);
   --white-30:rgb(255 255 255 / .30);
   --white-40:rgb(255 255 255 / .40);
+  --white-45:rgb(255 255 255 / .45);   /* (chrome) the dimmest ink  */
   --white-55:rgb(255 255 255 / .55);
   --white-60:rgb(255 255 255 / .60);
   --white-78:rgb(255 255 255 / .78);
   --white-80:rgb(255 255 255 / .80);
+  --white-92:rgb(255 255 255 / .92);   /* (chrome) body ink         */
 
   /* ——— semantic aliases (dark, the default) ——— */
   --background:#0a0a0a;

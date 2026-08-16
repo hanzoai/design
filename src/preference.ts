@@ -46,6 +46,11 @@ export interface Preference {
    * above 1 opens the display end and tightens the small one.
    */
   ratio?: number;
+  /**
+   * A modular scale for the display rungs — 1.618 for golden, 1.25 for a major
+   * third. Absent means the authored ramp, which is the tuned default.
+   */
+  modular?: number;
   density?: Density;
   /** Which face the page is set in. */
   font?: Face;
@@ -80,6 +85,45 @@ export const TYPE_MAX = 1.4;
  */
 export const RATIO_MIN = 0.75;
 export const RATIO_MAX = 1.5;
+
+/**
+ * A MODULAR scale — the classical one, where each display rung is the one below
+ * it times a fixed ratio. Golden is 1.618; the musical intervals designers name
+ * are 1.2 (minor third), 1.25 (major third), 1.333 (perfect fourth) and 1.5
+ * (perfect fifth).
+ *
+ * This is a different RULE from `ratio`, not another dial on it. `ratio` tunes
+ * the contrast of the ramp `tokens/typography.css` authored; this REPLACES that
+ * ramp's display half with a geometric one. Naming a golden-ratio preset as a
+ * contrast value would have been the dishonest version of this feature.
+ *
+ * Bounded below 1.05 because a ratio at 1 is not a scale — every display rung
+ * collapses onto the one before it — and above 2 because doubling every step
+ * puts the fourth rung past a phone's whole width.
+ *
+ * Golden is exactly 1.618 here and is NOT clamped down to something tamer,
+ * because a scale that quietly gives you not-golden when you asked for golden is
+ * worse than one that refuses. What makes that safe is the ceiling below: this
+ * ramp has EIGHT display rungs and a classical modular scale is used with about
+ * four, so at 1.618 the eighth would be 799px. Measured, --text-8xl and
+ * --text-9xl are referenced in 15 files across the fleet, so that is a broken
+ * page and not a hypothetical.
+ */
+export const MODULAR_MIN = 1.05;
+export const MODULAR_MAX = 2;
+
+/**
+ * The rungs a modular scale REGENERATES, in order, and the one it starts from.
+ *
+ * It deliberately stops at the display register. A geometric scale through the
+ * interface rungs is unusable at any real ratio: at 1.25 from a 14px base the
+ * next rungs are 17.5 and 21.9, so the 13px nav label and the 15px lead — the
+ * near-linear steps a dense interface is built on — do not exist. `xl` is the
+ * anchor because it is the last interface rung, so the display half continues
+ * from where the interface ends rather than restarting under it.
+ */
+const DISPLAY_RUNGS = ["2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl"];
+const MODULAR_ANCHOR_REM = 1.0625; // --text-xl, 17px
 
 /**
  * Density moves SPACING only, and its range is much tighter than type's.
@@ -167,6 +211,27 @@ export function vars(p: Preference): Record<string, string> {
 
   if (typeof p.ratio === "number" && Number.isFinite(p.ratio)) {
     out["--type-ratio"] = round(clamp(p.ratio, RATIO_MIN, RATIO_MAX));
+  }
+
+  if (typeof p.modular === "number" && Number.isFinite(p.modular)) {
+    // Each display rung is the anchor times the ratio to its step, emitted as an
+    // explicit property. An INLINE custom property on :root outranks the
+    // stylesheet, so these simply replace the authored rungs — nothing has to be
+    // unset first, and the interface rungs the sheet declares are untouched
+    // because none is named here. It multiplies out with `--type-scale` for free,
+    // since every rung is still read through that ramp's own calc.
+    const r = clamp(p.modular, MODULAR_MIN, MODULAR_MAX);
+    DISPLAY_RUNGS.forEach((rung, i) => {
+      const rem = MODULAR_ANCHOR_REM * Math.pow(r, i + 1);
+      // THE SAME clamp the authored ramp carries, read from the same two names.
+      // A regenerated rung and an authored one must be bounded identically or
+      // the bound is a property of which code path produced the value, which is
+      // exactly the kind of "it depends" a design system exists to delete. The
+      // bounds are declared once, in tokens/typography.css, and referenced here
+      // — never restated, so moving one moves both.
+      out[`--text-${rung}`] =
+        `clamp(var(--text-floor), calc(${round(rem)}rem * var(--type-scale, 1)), var(--text-ceiling))`;
+    });
   }
 
   if (p.density && p.density in DENSITY) {

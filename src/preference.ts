@@ -28,6 +28,15 @@
 
 export type Density = "compact" | "default" | "comfortable";
 
+/**
+ * The face, named by what it IS rather than by a family — the families are the
+ * token file's to choose, and it already names four.
+ */
+export type Face = "default" | "system" | "serif" | "mono";
+
+/** How wide the page runs before it stops. */
+export type Measure = "narrow" | "default" | "wide";
+
 export interface Preference {
   /** Multiplier on the type ramp. 1 is the published scale. */
   type?: number;
@@ -38,6 +47,10 @@ export interface Preference {
    */
   ratio?: number;
   density?: Density;
+  /** Which face the page is set in. */
+  font?: Face;
+  /** How wide the page runs — the measure, not the window. */
+  width?: Measure;
   /** A CSS colour for --primary / --accent. Rejected unless it is one. */
   accent?: string;
 }
@@ -80,6 +93,39 @@ const DENSITY: Record<Density, number> = {
   compact: 0.85,
   default: 1,
   comfortable: 1.15,
+};
+
+/**
+ * A face is chosen from the ones `tokens/fonts.css` already declares, and it is
+ * set by REFERENCE — `var(--font-serif)`, never a family list restated here.
+ *
+ * That is what keeps a preference from pinning a face: when the token file
+ * changes what "mono" means, or a brand overrides it, a person who chose mono
+ * follows. Writing `Georgia, serif` here would freeze this file's idea of serif
+ * into every document that ever stored the preference.
+ *
+ * `default` is deliberately absent from the map rather than mapped to
+ * `var(--font-sans)`: the axis writes `--font-sans`, so resolving it to itself
+ * is a cycle, and "no opinion" is already how every other axis says default.
+ */
+const FACE: Partial<Record<Face, string>> = {
+  system: "ui-sans-serif, system-ui, -apple-system, sans-serif",
+  serif: "var(--font-serif)",
+  mono: "var(--font-mono)",
+};
+
+/**
+ * The measure moves the CONTAINERS, not the columns.
+ *
+ * `--grid-columns` is 12 because layouts are authored against 12; changing it
+ * re-flows every span a page declares and is a different page, not a wider one.
+ * What a reader actually means by "wider" is how far the text runs before it
+ * wraps, which is `--container-*` — so that is the knob, and the grid inside it
+ * is untouched.
+ */
+const MEASURE: Partial<Record<Measure, { max: string; prose: string; wide: string }>> = {
+  narrow: { max: "64rem", prose: "40rem", wide: "58rem" },
+  wide: { max: "96rem", prose: "56rem", wide: "86rem" },
 };
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
@@ -125,6 +171,20 @@ export function vars(p: Preference): Record<string, string> {
 
   if (p.density && p.density in DENSITY) {
     out["--density"] = round(DENSITY[p.density]);
+  }
+
+  // Indexed, not `in`-checked: the maps omit `default`, so a lookup answers
+  // undefined for it and for anything stored that is not a face at all. One
+  // read, no cast, and an unknown value is refused by the same line that
+  // resolves a known one.
+  const face = p.font ? FACE[p.font] : undefined;
+  if (face) out["--font-sans"] = face;
+
+  const measure = p.width ? MEASURE[p.width] : undefined;
+  if (measure) {
+    out["--container-max"] = measure.max;
+    out["--container-prose"] = measure.prose;
+    out["--container-wide"] = measure.wide;
   }
 
   if (p.accent && isColor(p.accent)) {

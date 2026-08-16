@@ -102,6 +102,12 @@ check("EVERY ramp rung carries its multiplier — no rung can opt out", () => {
       const value = m[1].trim();
       if (value === "0") continue;                 // zero times anything is zero
       if (value.startsWith("var(")) continue;      // an alias inherits its target's calc
+      // --text-floor / --text-ceiling are the BOUNDS every rung is clamped
+      // between, not rungs. A bound that scaled with the knob would move with
+      // the value it exists to bound and could never bind — which is the whole
+      // reason a floor is stated in absolute units and a ceiling in the
+      // viewport's.
+      if (/^--text-(floor|ceiling):/.test(m[0])) continue;
       if (!value.includes(`var(${knob}`)) bare.push(`${file}: ${m[0].trim()}`);
     }
   }
@@ -142,6 +148,45 @@ check("an unknown stored value is refused, not passed through", () => {
   // from a future version or a hand-edited store must not reach a stylesheet.
   eq(vars({ font: "comic" }), {});
   eq(vars({ width: "enormous" }), {});
+});
+
+check("a modular scale regenerates the DISPLAY rungs, geometrically", () => {
+  const v = vars({ modular: 1.618 });
+  const names = Object.keys(v);
+  eq(names.length, 8, "a modular scale emits the eight display rungs:");
+  // Each rung is the one below it times the ratio — that IS the scale.
+  const rem = (n) => parseFloat(v[`--text-${n}`].match(/([\d.]+)rem/)[1]);
+  const rungs = ["2xl","3xl","4xl","5xl","6xl","7xl","8xl","9xl"];
+  for (let i = 1; i < rungs.length; i++) {
+    const r = rem(rungs[i]) / rem(rungs[i - 1]);
+    ok(Math.abs(r - 1.618) < 0.001, `${rungs[i]}/${rungs[i-1]} = ${r}, want the ratio`);
+  }
+  // Anchored on xl (17px), so the display half continues the interface rather
+  // than restarting under it.
+  ok(Math.abs(rem("2xl") - 1.0625 * 1.618) < 0.001, "2xl must be xl x ratio");
+});
+
+check("a modular scale leaves the INTERFACE rungs alone", () => {
+  // A geometric scale through xs..xl is unusable at any real ratio: the 13px nav
+  // label and the 15px lead simply do not exist on one.
+  const emitted = Object.keys(vars({ modular: 1.618 }));
+  for (const n of ["--text-xs", "--text-sm", "--text-base", "--text-lg", "--text-xl"]) {
+    ok(!emitted.includes(n), `${n} is the interface register and must not be regenerated`);
+  }
+});
+
+check("a modular scale still answers to the size knob", () => {
+  // It multiplies out with --type-scale rather than freezing a px value.
+  ok(vars({ modular: 1.5 })["--text-4xl"].includes("var(--type-scale, 1)"),
+    "a regenerated rung must carry the size knob");
+});
+
+check("the modular ratio is CLAMPED to something that is still a scale", () => {
+  // At 1 every display rung collapses onto the one below it.
+  const flat = vars({ modular: 1 });
+  const rem = (v, n) => parseFloat(v[`--text-${n}`].match(/([\d.]+)rem/)[1]);
+  ok(rem(flat, "3xl") > rem(flat, "2xl"), "a clamped ratio must still ascend");
+  eq(vars({ modular: 99 })["--text-2xl"], vars({ modular: 2 })["--text-2xl"], "max:");
 });
 
 check("a colour lands on both --primary and --accent", () => {

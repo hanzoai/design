@@ -64,12 +64,24 @@ function parse(css) {
  * against a knob the table does not have.
  */
 const KNOB = /^calc\(\s*([^*]+?)\s*\*\s*var\(--(?:type-scale|density),\s*1\)\s*\)$/
-const FLOOR = /^max\(\s*[\d.]+[a-z%]*\s*,\s*(calc\(.+\))\s*\)$/
+// The BOUNDS peel first. Every rung is `clamp(floor, value, ceiling)` — one
+// rule at both ends — and the table carries the VALUE: a bound is a rendering
+// decision the browser makes against a live viewport, so a JS table cannot hold
+// one and must not pretend to. `max(floor, value)` is the older one-ended form,
+// kept so a token file mid-migration still generates.
+const BOUNDS = [
+  /^clamp\(\s*[^,]+,\s*(calc\(.*\))\s*,\s*[^,]+\)$/,
+  /^max\(\s*[\d.]+[a-z%]*\s*,\s*(calc\(.+\))\s*\)$/,
+]
 const RUNG =
   /^calc\(\(\s*([\d.]+)(r?em|px)\s*([+-])\s*([\d.]+)(?:r?em|px)\s*\*\s*var\(--type-ratio,\s*1\)\s*\)\s*\*\s*var\(--type-scale,\s*1\)\s*\)$/
 
 const scale = (v) => {
-  const inner = v.match(FLOOR)?.[1] ?? v
+  let inner = v
+  for (const b of BOUNDS) {
+    const m = inner.match(b)
+    if (m) { inner = m[1]; break }
+  }
   const r = inner.match(RUNG)
   if (r) {
     const [, anchor, unit, sign, delta] = r

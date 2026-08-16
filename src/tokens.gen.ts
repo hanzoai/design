@@ -98,6 +98,8 @@ export const colors = {
 export const typography = {
   'type-scale': '1',
   'type-ratio': '1',
+  'text-floor': '0.625rem',
+  'text-ceiling': '30vw',
   'text-xs': '0.6875rem',
   'leading-xs': '1rem',
   'text-sm': '0.8125rem',
@@ -402,6 +404,8 @@ export const cssVars = {
   '--chrome-dot-green': 'rgb(34 197 94 / .6)',
   '--type-scale': '1',
   '--type-ratio': '1',
+  '--text-floor': '0.625rem',
+  '--text-ceiling': '30vw',
   '--text-xs': '0.6875rem',
   '--leading-xs': '1rem',
   '--text-sm': '0.8125rem',

@@ -31,6 +31,12 @@ export type Density = "compact" | "default" | "comfortable";
 export interface Preference {
   /** Multiplier on the type ramp. 1 is the published scale. */
   type?: number;
+  /**
+   * How far APART the rungs sit — the ramp's contrast, where `type` is its size.
+   * 1 is the published scale; below 1 flattens it toward a uniform register,
+   * above 1 opens the display end and tightens the small one.
+   */
+  ratio?: number;
   density?: Density;
   /** A CSS colour for --primary / --accent. Rejected unless it is one. */
   accent?: string;
@@ -47,6 +53,20 @@ export interface Preference {
  */
 export const TYPE_MIN = 0.85;
 export const TYPE_MAX = 1.4;
+
+/**
+ * The ratio's bounds are looser than type's, because the ramp defends its own
+ * floor.
+ *
+ * `tokens/typography.css` floors --text-xs/sm with `max()`, so the failure mode
+ * that forces type's tight clamp — a knob quietly rendering 9px labels — cannot
+ * happen on this axis however it combines with type. What is left to bound is
+ * only whether the ramp still READS as a ramp: at 0.75 the app register is
+ * within a hair of uniform, and past 1.5 a page's h2 has left its own body text
+ * behind entirely.
+ */
+export const RATIO_MIN = 0.75;
+export const RATIO_MAX = 1.5;
 
 /**
  * Density moves SPACING only, and its range is much tighter than type's.
@@ -97,6 +117,10 @@ export function vars(p: Preference): Record<string, string> {
 
   if (typeof p.type === "number" && Number.isFinite(p.type)) {
     out["--type-scale"] = round(clamp(p.type, TYPE_MIN, TYPE_MAX));
+  }
+
+  if (typeof p.ratio === "number" && Number.isFinite(p.ratio)) {
+    out["--type-ratio"] = round(clamp(p.ratio, RATIO_MIN, RATIO_MAX));
   }
 
   if (p.density && p.density in DENSITY) {

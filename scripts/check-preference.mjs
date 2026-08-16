@@ -24,7 +24,13 @@ const js = src
   .replace(/^import[^\n]*\n/gm, "")
   .replace(/export (type|interface) [\s\S]*?\n}\n/g, "")
   .replace(/export type [^\n]*\n/g, "")
-  .replace(/: Record<[^>]*>/g, "")
+  // A generic annotation may nest (`Partial<Record<Face, string>>`), and
+  // stopping at the first `>` leaves `, string>` behind, so Function() fails to
+  // parse for a reason that has nothing to do with the preference. One level of
+  // nesting is matched explicitly — balanced, and it cannot run past the
+  // annotation the way a lookahead to the initializer can (that ate a function
+  // body, because a return type has no initializer to stop at).
+  .replace(/:\s*\w+<(?:[^<>]|<[^<>]*>)*>/g, "")
   .replace(/: Preference/g, "")
   .replace(/: Density/g, "")
   .replace(/: string/g, "")
@@ -114,6 +120,30 @@ check("a unitless leading stays a RATIO — scaling it would double-apply", () =
   eq(bad, [], "unitless leadings must not carry a multiplier:");
 });
 
+check("a face is set by REFERENCE, so a brand's own face still wins", () => {
+  // Restating "Georgia, serif" here would freeze this file's idea of serif into
+  // every document that ever stored the preference.
+  eq(vars({ font: "serif" })["--font-sans"], "var(--font-serif)");
+  eq(vars({ font: "mono" })["--font-sans"], "var(--font-mono)");
+  ok(!("--font-mono" in vars({ font: "serif" })), "code must stay monospaced");
+  eq(vars({ font: "default" }), {}, "default is no opinion, not a self-reference:");
+});
+
+check("the measure moves containers, never the column count", () => {
+  const v = vars({ width: "wide" });
+  ok(!("--grid-columns" in v), "changing the columns is a different page, not a wider one");
+  ok("--container-max" in v && "--container-prose" in v, Object.keys(v).join(","));
+  ok(parseFloat(v["--container-prose"]) > parseFloat(vars({ width: "narrow" })["--container-prose"]), "wide must exceed narrow");
+  eq(vars({ width: "default" }), {}, "default is no opinion:");
+});
+
+check("an unknown stored value is refused, not passed through", () => {
+  // A preference is user input; these axes are string unions, so a stored value
+  // from a future version or a hand-edited store must not reach a stylesheet.
+  eq(vars({ font: "comic" }), {});
+  eq(vars({ width: "enormous" }), {});
+});
+
 check("a colour lands on both --primary and --accent", () => {
   const v = vars({ accent: "#808000" });
   eq(v["--primary"], "#808000");
@@ -156,7 +186,11 @@ check("every emitted name is one the token files actually read", () => {
   const declared = new Set([...text.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm)].map((m) => m[1]));
   const read = new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
 
-  const emitted = Object.keys(vars({ type: 1.1, density: "compact", accent: "#fff" }));
+  // EVERY axis, not a sample — an axis missing here is an axis whose names
+  // nothing gates, which is how a knob starts writing into another document.
+  const emitted = Object.keys(
+    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", width: "wide", accent: "#fff" })
+  );
   const orphans = emitted.filter((k) => !declared.has(k) && !read.has(k));
   eq(orphans, [], "emitted names no token file declares or reads:");
 });

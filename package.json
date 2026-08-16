@@ -1,8 +1,8 @@
 {
   "name": "@hanzo/design",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "packageManager": "pnpm@11.17.0",
-  "description": "Hanzo Design System \u2014 monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
+  "description": "Hanzo Design System — monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
   "license": "MIT OR Apache-2.0",
   "repository": {
     "type": "git",

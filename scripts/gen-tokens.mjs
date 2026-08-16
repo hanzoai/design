@@ -52,9 +52,33 @@ function parse(css) {
  * The shape is exact (`calc(<value> * var(--<knob>, 1))`) and only that shape is
  * unwrapped; a genuinely composite calc (`calc(var(--fold) - 1px)`) is untouched.
  * check-tokens.mjs holds it: no emitted value may name a knob.
+ *
+ * The type ramp adds a second knob INSIDE the first — a rung is
+ * `calc((<anchor> ± <delta> * var(--type-ratio, 1)) * var(--type-scale, 1))`, and
+ * the small rungs wrap that in a `max()` floor. Both are peeled here, in the
+ * order they nest, and the arithmetic is then done at the published defaults
+ * (both knobs 1) so the table carries exactly the rung the sheet renders — which
+ * is the same number it carried before the ratio existed. The floor is DROPPED
+ * rather than evaluated: it exists to catch a person's settings compounding, and
+ * at the defaults it never binds, so keeping it would put a guard in the table
+ * against a knob the table does not have.
  */
 const KNOB = /^calc\(\s*([^*]+?)\s*\*\s*var\(--(?:type-scale|density),\s*1\)\s*\)$/
-const scale = (v) => v.match(KNOB)?.[1] ?? v
+const FLOOR = /^max\(\s*[\d.]+[a-z%]*\s*,\s*(calc\(.+\))\s*\)$/
+const RUNG =
+  /^calc\(\(\s*([\d.]+)(r?em|px)\s*([+-])\s*([\d.]+)(?:r?em|px)\s*\*\s*var\(--type-ratio,\s*1\)\s*\)\s*\*\s*var\(--type-scale,\s*1\)\s*\)$/
+
+const scale = (v) => {
+  const inner = v.match(FLOOR)?.[1] ?? v
+  const r = inner.match(RUNG)
+  if (r) {
+    const [, anchor, unit, sign, delta] = r
+    const n = sign === '-' ? Number(anchor) - Number(delta) : Number(anchor) + Number(delta)
+    // 4dp, then trim — 0.875 + 0.75 must read `1.625rem`, not `1.6250000000000002rem`.
+    return `${Number(n.toFixed(4))}${unit}`
+  }
+  return inner.match(KNOB)?.[1] ?? inner
+}
 
 const groupMaps = {} // groupName -> Map(name->value), first-wins
 const flatMap = new Map() // '--name' -> value, first-wins

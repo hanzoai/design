@@ -979,6 +979,22 @@
        its buttons at 8-10px and nothing at 6px except 22px chips. */
     border-radius:var(--radius-md);
     padding:0 var(--space-3);
+    /* A field's ring is drawn INSIDE its own box. The one focus rule below
+       reads this; nothing else about the indicator changes.
+
+       A field lives in containers a button does not — composers, palettes and
+       panels that round their corners with `overflow:hidden`. An outline at a
+       POSITIVE offset is painted outside the border box, so any such ancestor
+       clips it, and the computed style still says `2px solid` while nothing is
+       drawn: a chat composer measured byte-identical screenshots focused and
+       unfocused, and a search pill kept only its left and right edges. A
+       negative offset cannot be clipped by anything, so a field needs to know
+       nothing about what contains it.
+
+       -2 against a 2px ring lays the outline over the outermost 2px of the box,
+       so it REPLACES the 1px edge for as long as focus is there rather than
+       drawing a second line a pixel inside the first. */
+    --ring-offset:-2px;
   }
   :where(textarea){padding:var(--space-2) var(--space-3);resize:vertical}
   /* A field has NO focus rule of its own — see the ring at the bottom of this
@@ -1045,6 +1061,11 @@
      canvas and clears the 2px perimeter WCAG 2.4.13 asks for; the gate in
      check-tokens holds --ring to that and nothing else here may weaken it.
 
+     WHERE the ring sits is the one thing that varies, and it varies as a VALUE
+     the element carries, never as a second rule: `--ring-offset` defaults to 2
+     and a field sets it to -2 (see the field block above). Two rules is what
+     0.4.9 removed, and a second one here would be the same defect again.
+
      There were two rules until 0.4.9, and they collided invisibly. Both computed
      to (0,1,0) — :where() zeroes whatever it wraps, leaving one pseudo-class on
      each side — so the cascade fell through to SOURCE ORDER inside this layer,
@@ -1053,7 +1074,7 @@
      drew BOTH the ring and the edge+halo. Each rule read as correct alone, which
      is why it survived review in both files; the defect existed only in their
      order. One rule cannot disagree with itself. */
-  :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+  :focus-visible{outline:2px solid var(--ring);outline-offset:var(--ring-offset,2px)}
   /* --white-20 is white-on-white in the light theme, so selection reads through
      --selection, which BOTH themes define. */
   ::selection{background:var(--selection);color:var(--text-primary)}

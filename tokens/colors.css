@@ -77,11 +77,20 @@
 
   /* ——— semantic aliases (dark, the default) ——— */
   --background:#0a0a0a;
-  --foreground:#fafafa;
+  /* READING ink, one rung below the top of the ramp. The note at the head of this
+     file already made this argument once — #ffffff on #000000 halates, so #fafafa
+     — and the argument does not stop being true at 19.0:1. Every heading and
+     paragraph on every surface was set in the brightest ink the system has, while
+     the CHROME beside them draws body text at --white-92; a page read as glare
+     against its own header. #e5e5e5 is the neutral-200 rung this file already
+     spends on --primary-hover, so the ramp gains no new value: 15.7:1 on the page,
+     15.2:1 on a card, both more than twice the 7:1 AAA asks of body text.
+     Something that genuinely needs the brightest ink names --primary. */
+  --foreground:#e5e5e5;
   --card:#0f0f0f;
-  --card-foreground:#fafafa;
+  --card-foreground:#e5e5e5;
   --popover:#0f0f0f;
-  --popover-foreground:#fafafa;
+  --popover-foreground:#e5e5e5;
   --primary:#fafafa;
   /* A 5% step, not the 16% this used to be. A filled button's fill is already
      the top of the ink ramp, so the only directions available on hover are

@@ -503,6 +503,26 @@
      hanzoai/id's stylesheet — one app knowing something the system did not. */
   --tap-target:44px;
 
+  /* ——— controls ——— */
+  /* A control's OWN height, which the floor above does not answer: 44px is the
+     smallest a finger may aim at, not the size a thing should be. Nothing named
+     the second question, so each surface answered it privately and they drifted
+     — @hanzo/ui keeps `CONTROL_H = 36` in TypeScript, hanzoai/app pins a 30px
+     `--control-h` over that same 36px library, and hanzoai/id spelled
+     `min-height:52px` into three separate rules.
+     The first three rungs ARE @hanzo/ui's size table (default/sm/lg), moved
+     down to the layer that holds values so a host can answer it once instead of
+     each library carrying a private copy. They sit under the tap floor on
+     purpose: base.css lifts whichever one is spent to 44px under
+     `pointer:coarse`, so one declaration serves a compact pointer control and a
+     hittable touch one. -xl is what a surface earns when the control IS the
+     content — one field, one button, nothing competing — where the default
+     reads as one of a stack rather than as the thing the screen is for. */
+  --control-height-sm:32px;
+  --control-height:36px;
+  --control-height-lg:40px;
+  --control-height-xl:52px;
+
   /* ——— safe areas ——— */
   /* The notch/home-indicator insets, named once. Anything pinned to a viewport
      edge — a fixed header, a bottom bar, a sheet — adds the matching one. */

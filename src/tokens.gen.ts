@@ -318,7 +318,7 @@ export const fonts = {
 
 /** base tokens (from tokens/base.css). Values are raw CSS. */
 export const base = {
-
+  'ring-offset': '-2px',
 } as const
 
 /** Every token, keyed by its literal CSS custom-property name ('--background', …). */
@@ -601,6 +601,7 @@ export const cssVars = {
   '--font-mono': '"Geist Mono",ui-monospace,SFMono-Regular,monospace',
   '--font-serif': 'Georgia,serif',
   '--font-feature-settings': '"ss01","ss02","cv01","cv02","cv03"',
+  '--ring-offset': '-2px',
 } as const
 
 export type CssVarName = keyof typeof cssVars

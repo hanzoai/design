@@ -1,6 +1,6 @@
 {
   "name": "@hanzo/design",
-  "version": "0.5.16",
+  "version": "0.5.17",
   "packageManager": "pnpm@11.17.0",
   "description": "Hanzo Design System \u2014 monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
   "license": "MIT OR Apache-2.0",
@@ -13,13 +13,14 @@
   "sideEffects": [
     "*.css"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json",
@@ -35,7 +36,7 @@
   "scripts": {
     "gen": "node scripts/gen-tokens.mjs",
     "test": "node scripts/check-tokens.mjs && node scripts/check-preference.mjs && node scripts/lint.mjs .",
-    "build": "pnpm gen && pnpm test && tsc -p tsconfig.json && node scripts/check-dist.mjs",
+    "build": "rm -rf dist dist-cjs && pnpm gen && pnpm test && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json --noCheck && node scripts/cjs.mjs && node scripts/check-dist.mjs",
     "prepublishOnly": "pnpm build",
     "lint": "node scripts/lint.mjs"
   },

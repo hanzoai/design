@@ -1,0 +1,17 @@
+{
+  // The second of two emits. `tsc` writes one module format per run and one
+  // outDir per run, so CommonJS is a separate pass over the same sources; the
+  // ESM pass owns the declarations, this one emits code only.
+  //
+  // `moduleResolution` is restated because `bundler` (the base) is legal only
+  // alongside an ES module format — inheriting it here is TS5095 and the run
+  // emits nothing.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist-cjs",
+    "declaration": false,
+    "declarationMap": false
+  }
+}

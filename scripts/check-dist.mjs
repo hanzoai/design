@@ -12,6 +12,7 @@
  * A test that reads source cannot see that. This one loads the artifact.
  */
 import { readFileSync, existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -56,6 +57,25 @@ await check('the barrel IMPORTS — the check that 0.4.10 and 0.4.11 needed', as
   if (typeof mod.vars !== 'function') throw new Error('vars is not callable from the built package')
   const v = mod.vars({ type: 1.2, density: 'compact' })
   if (v['--type-scale'] !== '1.2') throw new Error(`built vars() returned ${JSON.stringify(v)}`)
+})
+
+await check('the barrel REQUIRES, with the same names it imports', async () => {
+  // `type: module` makes every `.js` here ESM, so a CommonJS consumer cannot read
+  // the barrel at all — it parses `export` as a syntax error and reports the line
+  // in OUR file. Plain Node hides this now that `require(esm)` works, but jest
+  // still loads a dependency as CommonJS, so `require('@hanzo/design')` in a
+  // jsdom test died at `dist/index.js:12` through 0.5.16.
+  //
+  // Same names from both formats, checked against each other rather than a list:
+  // a list is a third copy that goes stale the next time an export is added.
+  const esm = await import(pathToFileURL(join(root, 'dist/index.js')).href)
+  const cjs = createRequire(import.meta.url)(join(root, 'dist/index.cjs'))
+  const names = (m) => Object.keys(m).filter((k) => k !== 'default' && k !== '__esModule').sort()
+  const missing = names(esm).filter((n) => !(n in cjs))
+  if (missing.length) throw new Error(`dist/index.cjs is missing ${missing.join(', ')}`)
+  if (typeof cjs.vars !== 'function') throw new Error('vars is not callable from the CommonJS build')
+  if (cjs.vars({ type: 1.2, density: 'compact' })['--type-scale'] !== '1.2')
+    throw new Error('the CommonJS build computes a different preference than the ESM one')
 })
 
 await check('no emitted module uses an extensionless relative specifier', () => {

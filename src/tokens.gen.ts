@@ -309,9 +309,9 @@ export const zIndex = {
 
 /** fonts tokens (from tokens/fonts.css). Values are raw CSS. */
 export const fonts = {
-  'font-sans': '"Geist","Geist Sans",ui-sans-serif,system-ui,sans-serif',
+  'font-sans': '"Zen",ui-sans-serif,system-ui,sans-serif',
   'font-display': 'var(--font-sans)',
-  'font-mono': '"Geist Mono",ui-monospace,SFMono-Regular,monospace',
+  'font-mono': '"Zen Mono",ui-monospace,SFMono-Regular,monospace',
   'font-serif': 'Georgia,serif',
   'font-feature-settings': '"ss01","ss02","cv01","cv02","cv03"',
 } as const
@@ -596,9 +596,9 @@ export const cssVars = {
   '--z-toast': '800',
   '--z-tooltip': 'var(--z-popover)',
   '--z-notification': 'var(--z-toast)',
-  '--font-sans': '"Geist","Geist Sans",ui-sans-serif,system-ui,sans-serif',
+  '--font-sans': '"Zen",ui-sans-serif,system-ui,sans-serif',
   '--font-display': 'var(--font-sans)',
-  '--font-mono': '"Geist Mono",ui-monospace,SFMono-Regular,monospace',
+  '--font-mono': '"Zen Mono",ui-monospace,SFMono-Regular,monospace',
   '--font-serif': 'Georgia,serif',
   '--font-feature-settings': '"ss01","ss02","cv01","cv02","cv03"',
   '--ring-offset': '-2px',

@@ -15,42 +15,52 @@ and the dark-black palette.
 
 ---
 
-## 1. Typography — Basel Grotesk + Geist Mono
+## 1. Typography — Zen
 
 | Role | Family | Notes |
 |------|--------|-------|
-| UI / body / display / heading (`sans`) | **Basel Grotesk** | Self-hosted. Book = weight **400**, Medium = weight **500**. |
-| code / data / mono (`mono`) | **Geist Mono** | `next/font/google` (`Geist_Mono`) or the geist CDN. |
+| UI / body / display / heading (`sans`) | **Zen** | Variable, `wght` 100–900. One file covers every weight. |
+| code / data / mono (`mono`) | **Zen Mono** | Variable, same axis. |
+| display accents | **Zen Pixel** | Five cuts: Circle, Grid, Line, Square, Triangle. |
 | Arabic / Hebrew (`--font-ar` / `--font-he`) | unchanged | i18n only — keep. |
 
-**Dropped as defaults:** Geist Sans, DM Sans, Figtree, Inter, PT Sans, Roboto Mono.
+**There is one family.** No Basel Grotesk, no Druk, no Inter, DM Sans, Figtree,
+PT Sans or Roboto Mono — and no licensed third-party face at all, which is the
+point: Zen is ours, so nothing here is a seat count or a domain licence.
 
-Basel is a **licensed, non-Google** face — **self-host** the woff2/woff, do NOT use
-`next/font/google` for it. Canonical files (mirror lux.exchange):
-`Basel-Grotesk-Book.woff2/.woff` (400), `Basel-Grotesk-Medium.woff2/.woff` (500).
-
-`@font-face` (weights 400/500, `font-display: swap`, `font-style: normal`):
+**An app writes nothing.** `@hanzo/design/styles.css` declares the `@font-face`
+rules and serves the binaries out of this package, so importing the token layer
+is the whole integration. Do NOT hand-write an `@font-face`, do NOT reach for
+`next/font/google`, and do NOT add a per-app copy of the files.
 
 ```css
-@font-face {
-  font-family: 'Basel';
-  font-style: normal;
-  font-weight: 400; /* Book; 500 = Medium */
-  font-display: swap;
-  src: url('.../Basel-Grotesk-Book.woff2') format('woff2'),
-       url('.../Basel-Grotesk-Book.woff') format('woff');
-}
+@import "@hanzo/design/styles.css";   /* faces + tokens, one line */
 ```
 
-Per-app adoption (converge the value, keep each app's own mechanism):
-- **@hanzo/ui / Next apps** → `next/font/local` for Basel (`--font-basel-sans`) +
-  `next/font/google` `Geist_Mono` (`--font-geist-mono`). See `app/lib/fonts.ts`;
-  tailwind `sans → var(--font-basel-sans)`, `mono → var(--font-geist-mono)`.
-- **Vite + Tailwind apps** (chat, launcher, desktop) → self-host Basel `@font-face`
-  + geist-mono CDN import; tailwind `fontFamily.sans = ['Basel', …]`,
-  `mono = ['Geist Mono', …]`.
-- **Tamagui (console)** → Basel `@font-face` in globals + override the Tamagui
-  `body`/`heading` font `family` to Basel; Geist Mono for `code`/`pre`.
+Then name the role, never the face: `var(--font-sans)`, `var(--font-mono)`.
+
+### Brand presets
+
+`@hanzo/font/presets.css` carries five settings, each a point in Zen's own
+parameter space that a brand has settled on. Two were FITTED by pixel residual
+against the faces they replace, so the swap holds on metrics rather than on
+taste.
+
+| preset | wght | scaleX | track | use |
+|---|---|---|---|---|
+| `.zen-air` | 220 | — | −.030em | thin display |
+| `.zen-book` | 497 | — | — | text |
+| `.zen-medium` | 606 | — | — | UI emphasis |
+| `.zen-wide` | 845 | 1.56 | −.040em | monumental caps |
+| `.zen-round` | 900 | — | −.018em | heavy and friendly |
+
+`.zen-wide` transforms, so its LAYOUT box stays the untransformed width — give
+it room or clip its container.
+
+**Zen's own alternates cover the neo-grotesque register**, so a brand that wants
+that voice changes a feature setting rather than a family: `ss01` is the
+single-storey `a`, `ss04` the straight-leg `R`, `ss09` a slashed zero and serif
+one. Eleven sets ship.
 
 ---
 

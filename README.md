@@ -81,7 +81,7 @@ import { HanzoLogo } from "@hanzo/design/components/core/HanzoLogo.jsx";
 | `content/` | The words — brand voice and taglines. |
 | `docs/` | How to use the system — integrate the tokens, theme, extend. |
 | `guidelines/` | Specimen cards — color, type, spacing, brand, iconography — the visual reference. |
-| `assets/fonts/` | Geist Sans + Geist Mono, self-hosted (two variable `.woff2`, 141 KB, SIL OFL-1.1). No Google Fonts request. |
+| `assets/fonts/` | Zen + Zen Mono, self-hosted (two variable `.woff2`, 141 KB, SIL OFL-1.1). No Google Fonts request. |
 | `assets/` | The mark, wordmark, favicon, provider + partner logos, brand imagery. |
 | `scripts/check-tokens.mjs` | The gate: every token file is served, every internal `var()` resolves, and the contrast floors hold. Runs on `npm run build`. |
 | `ui_kits/` | Composed surfaces (e.g. `SiteChrome`) assembled from the components. |

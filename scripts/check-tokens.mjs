@@ -60,7 +60,6 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
 }
 
 // ── 1a. the bundles must PARSE ───────────────────────────────────────────
-// 0.4.2 and 0.4.3 shipped a stray `*/` in styles.css AND tailwind.css: an
 // edit added prose to the end of a comment that was already closed, so a
 // paragraph of English sat in the stylesheet as raw CSS, terminated by a
 // second `*/`. Browsers recover from that — they skip to the next thing that
@@ -78,7 +77,7 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
 // that skips comment bodies finds every stray terminator and every unclosed
 // opener. A parser dependency would be a heavier answer to a smaller question.
 {
-  for (const f of ['styles.css', 'tailwind.css']) {
+  for (const f of ['styles.css']) {
     const s = read(join(root, f))
     let i = 0, opened = 0, strays = [], unterminated = null
     while (i < s.length - 1) {
@@ -100,31 +99,11 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   }
 }
 
-// ── 1b. the Tailwind bridge is complete and self-contained ───────────────
-// An app should write ONE import and get working utilities. Each thing checked
-// here failed silently in production before it was checked: a missing slot
-// makes that utility resolve to nothing (`border-border` -> currentColor -> a
-// white hairline on black), and a surviving @import makes the browser drop
-// every token without a word.
-{
-  const tw = strip(read(join(root, 'tailwind.css')))
-  tw.includes('@import')
-    ? fail('tailwind.css contains an @import — invalid after `@import "tailwindcss"`, so the tokens are dropped')
-    : pass('tailwind.css has no @import to invalidate')
-
-  // Every Tailwind colour slot an app will reach for must be mapped.
-  const slots = ['background', 'foreground', 'card', 'popover', 'primary', 'secondary',
-                 'muted', 'muted-foreground', 'accent', 'destructive', 'border', 'input', 'ring']
-  const unmapped = slots.filter((s) => !tw.includes(`--color-${s}:`))
-  unmapped.length
-    ? fail(`tailwind.css does not map: ${unmapped.join(', ')}`)
-    : pass(`tailwind.css maps all ${slots.length} core colour slots`)
-
-  // And it must carry the values, not merely reference them.
-  tw.includes('--border:')
-    ? pass('tailwind.css carries the token values inline')
-    : fail('tailwind.css maps slots but carries no tokens — every utility resolves to nothing')
-}
+// 1b was the Tailwind bridge — a generated `tailwind.css` mapping every token
+// onto a `--color-*` utility slot. Gone with the utility layer it existed to
+// feed: this system's one substrate is @hanzo/gui, which reads the tokens
+// directly, so a second sheet republishing them as utilities was the "one fact,
+// two homes" shape the `second-publisher` lint rule exists to catch.
 
 // ── 1c. element defaults must LOSE to an app's utilities ─────────────────
 // A rule outside a cascade layer beats a rule inside one regardless of

@@ -282,9 +282,11 @@ rule is live everywhere the day it ships and nobody has to opt in.
   the cursor. An unfilled button's hover is the surface arriving, not the edge
   moving: `.15` → `.16` is a state nobody can see, and a state nobody can see is
   dead code.
-- KNOWN DRIFT: `guidelines/DESIGN.md` and `prompts/studio-designer.md` name Basel
-  Grotesk as the canonical sans, while `tokens/fonts.css` declares Geist. The
-  tokens win — prose has not caught up.
+- Typography is **Zen**, one family, ours, declared in `tokens/fonts.css` and
+  shipped as binaries in `assets/fonts/`. The tokens, `guidelines/DESIGN.md` and
+  `prompts/studio-designer.md` all say so — that last pair used to name Basel
+  Grotesk while the tokens named something else, and studio.hanzo.ai reads those
+  prompts, so the drift was teaching customers to self-host a licensed face.
 - `CLAUDE.md` is a symlink to this file.
 
 ## License

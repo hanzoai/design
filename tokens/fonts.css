@@ -26,21 +26,30 @@
      bytes than the CSS-then-woff2 round trip.
 
    The url()s are relative to THIS file, so they resolve wherever the package is
-   mounted — node_modules, a CDN, a copied dist — with no configuration. */
+   mounted — node_modules, a CDN, a copied dist — with no configuration.
+
+   `font-display: block`, NOT swap, and the difference is the whole brand. `swap`
+   paints the fallback IMMEDIATELY and repaints when the face lands, so every first
+   visit shows the platform's own sans for as long as the download takes — on Ubuntu
+   that is DejaVu, which looks nothing like us and is the single most common way a
+   Hanzo surface renders wrong. `block` holds the text invisible for a short period
+   (~3s) and then paints Zen, so the fallback is only ever reached when the face
+   genuinely fails to arrive. A held word is a moment; the wrong typeface is the
+   brand. The generic tail below stays for exactly that real-failure case. */
 
 @font-face{
   font-family:"Zen";
   src:url("../assets/fonts/Zen-Variable.woff2") format("woff2");
   font-weight:100 900;
   font-style:normal;
-  font-display:swap;
+  font-display:block;
 }
 @font-face{
   font-family:"Zen Mono";
   src:url("../assets/fonts/ZenMono-Variable.woff2") format("woff2");
   font-weight:100 900;
   font-style:normal;
-  font-display:swap;
+  font-display:block;
 }
 
 :root{

@@ -313,7 +313,7 @@ export const fonts = {
   'font-display': 'var(--font-sans)',
   'font-mono': '"Zen Mono",ui-monospace,SFMono-Regular,monospace',
   'font-serif': 'Georgia,serif',
-  'font-feature-settings': '"ss01","ss02","cv01","cv02","cv03"',
+  'font-feature-settings': 'normal',
 } as const
 
 /** base tokens (from tokens/base.css). Values are raw CSS. */
@@ -600,7 +600,7 @@ export const cssVars = {
   '--font-display': 'var(--font-sans)',
   '--font-mono': '"Zen Mono",ui-monospace,SFMono-Regular,monospace',
   '--font-serif': 'Georgia,serif',
-  '--font-feature-settings': '"ss01","ss02","cv01","cv02","cv03"',
+  '--font-feature-settings': 'normal',
   '--ring-offset': '-2px',
 } as const
 

@@ -897,9 +897,25 @@
   --font-display:var(--font-sans);
   --font-mono:"Zen Mono",ui-monospace,SFMono-Regular,monospace;
   --font-serif:Georgia,serif;
-  /* hanzo.ai sets these OpenType features on <body>. ss01 is Zen's
-     single-storey a — the neo-grotesque letterform. */
-  --font-feature-settings:"ss01","ss02","cv01","cv02","cv03";
+  /* The default is Zen as drawn, and that is a decision rather than an omission.
+     `base.css` puts this on <body>, so whatever is here is the voice of every
+     surface in the estate — which is exactly why it should not carry a brand's.
+
+     It used to read `"ss01","ss02","cv01","cv02","cv03"`, of which FOUR did
+     nothing: Zen has no cv01/cv02/cv03 at all, and ss01 and ss02 both remap `a`,
+     so ss01 substitutes first and ss02 never matches the glyph it was written
+     for. The one that did work quietly gave Lux and Zoo the single-storey `a`
+     that belongs to Hanzo.
+
+     A brand sets its own voice by overriding THIS token — one knob, one place:
+       Hanzo   "ss01"            single-storey a, the neo-grotesque register
+       Lux     "ss04"            straight-leg R, to sit under the wordmark
+       Zoo     normal            the humanist default, the warmest of the three
+     Zen ships eleven sets; ss03 is a tailed l, ss05 a serifed I, ss06 an
+     alternate G and ss09 a slashed zero with a serif one. Kerning, ligatures and
+     contextual alternates are on by default in every browser and do not belong
+     in this list. */
+  --font-feature-settings:normal;
 }
 
 /* ── tokens/base.css ─────────────────────────────────────── */

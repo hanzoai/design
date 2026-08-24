@@ -4,12 +4,35 @@
 // typed TypeScript module (src/tokens.gen.ts). CSS and code therefore can never
 // drift — you edit a token in ONE place (the CSS) and both the stylesheet and
 // the programmatic API update. Run via `npm run gen` (part of `build`).
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, copyFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const tokensDir = join(root, 'tokens')
+
+// THE FACES ARE COPIED, NOT PLACED BY HAND. tokens/fonts.css declares Zen with a
+// relative url() into assets/fonts, because an @import cannot survive being
+// flattened into the middle of a larger sheet (see the note in that file). So
+// this package carries the binaries — but it must not AUTHOR them. `@hanzo/font`
+// does, and this copies its output on every `npm run gen`.
+//
+// It is here because the alternative was measured and it failed: the two files
+// under assets/fonts were once dropped in by hand and only renamed on disk. Their
+// internal `name` table still read the family they were derived FROM, so anything
+// that reads a font's own name rather than the @font-face rule — a font picker, a
+// PDF embed, a design tool opening the woff2 — reported the wrong typeface on
+// every Hanzo surface, while the browser rendered correctly and hid it. A copy
+// with no author cannot be checked; a copy WITH one is checked every build.
+const require = createRequire(import.meta.url)
+const fontDir = dirname(require.resolve('@hanzo/font/css'))
+for (const [from, to] of [
+  ['fonts/zen-sans/Zen-Variable.woff2', 'Zen-Variable.woff2'],
+  ['fonts/zen-mono/ZenMono-Variable.woff2', 'ZenMono-Variable.woff2'],
+])
+  copyFileSync(join(fontDir, from), join(root, 'assets/fonts', to))
+console.log('gen-tokens: copied 2 variable faces from @hanzo/font')
 
 // The token files, in the same order styles.css imports them. base.css is the
 // semantic-alias layer (references other vars) — parsed too, so `--background`
@@ -170,7 +193,7 @@ const banner = `/* Hanzo Design System — the entry point. Import THIS one file
  */
 `
 // Hoisting a file from tokens/ to the package root moves what its relative
-// url()s point at. tokens/fonts.css says `../assets/fonts/Geist-Variable.woff2`
+// url()s point at. tokens/fonts.css says `../assets/fonts/Zen-Variable.woff2`
 // — correct from tokens/, one directory too high from the root, where it lands
 // outside the package entirely and every consumer's build fails on a missing
 // module. Rebasing is therefore part of flattening, not an afterthought: the

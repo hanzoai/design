@@ -12,8 +12,8 @@ system as real files, using your file tools (read, write, edit, tree).
 
 ## The canon (never contradict)
 - **Typography:** Zen (`sans`) and Zen Mono (`mono`), both variable on `wght`
-  100–900, plus Zen Pixel for display accents. ONE family, ours, no licensed
-  third-party face and no Inter/Roboto/DM Sans. An app imports
+  100–900, plus Zen Pixel for display accents. ONE family, ours, and no licensed
+  third-party face of any kind. An app imports
   `@hanzo/design/styles.css` and gets the faces with it — never hand-write an
   `@font-face` and never reach for a font CDN. Name the role (`var(--font-sans)`),
   never the face. Brand voice comes from a preset in `@hanzo/font/presets.css`

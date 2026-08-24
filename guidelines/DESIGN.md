@@ -24,8 +24,7 @@ and the dark-black palette.
 | display accents | **Zen Pixel** | Five cuts: Circle, Grid, Line, Square, Triangle. |
 | Arabic / Hebrew (`--font-ar` / `--font-he`) | unchanged | i18n only — keep. |
 
-**There is one family.** No Basel Grotesk, no Druk, no Inter, DM Sans, Figtree,
-PT Sans or Roboto Mono — and no licensed third-party face at all, which is the
+**There is one family**, and no licensed third-party face at all, which is the
 point: Zen is ours, so nothing here is a seat count or a domain licence.
 
 **An app writes nothing.** `@hanzo/design/styles.css` declares the `@font-face`

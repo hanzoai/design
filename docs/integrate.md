@@ -13,7 +13,7 @@ pnpm add @hanzo/design
 @import "@hanzo/design/styles.css";
 ```
 
-That one file pulls in, in order: fonts (Geist + Geist Mono), color, typography,
+That one file pulls in, in order: fonts (Zen + Zen Mono), color, typography,
 spacing, radius, elevation, motion, z, and base element defaults. After it,
 every token below is a live CSS custom property.
 

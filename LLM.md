@@ -16,8 +16,19 @@ The derivation runs one way and never back:
 `tokens/*.css` is the source of truth. Ten hand-authored files — colors,
 typography, spacing, grid, radius, elevation, motion, z, fonts, base — and
 everything else is derived from them. `scripts/gen-tokens.mjs` parses all ten in
-a fixed order and emits exactly one artifact, `src/tokens.gen.ts` (232 tokens, 10
-groups). That file is generated AND committed; never hand-edit it.
+a fixed order and emits `src/tokens.gen.ts` and the flattened `styles.css`. Both
+are generated AND committed; never hand-edit either.
+
+**The two woff2 under `assets/fonts` are generated too.** `@hanzo/font` authors
+Zen; this package only carries a copy, because `tokens/fonts.css` must declare the
+faces rather than `@import` them (an `@import` is dropped when `@hanzo/ui` folds
+that file into the middle of its theme.css — measured). `gen-tokens.mjs` copies
+the two variable faces out of the installed `@hanzo/font` on every run, so the
+copy cannot drift from its author. It was hand-placed once, and the files turned
+out to be the upstream binaries renamed on disk only: their internal `name` table
+still read the family Zen was derived from, so every font picker, PDF embed and
+design tool reported the wrong typeface while the browser rendered correctly and
+hid it.
 
 **spacing vs grid** is the one boundary worth stating, because both are "layout"
 and it would be easy to write a value twice. `spacing.css` owns DISTANCES and the

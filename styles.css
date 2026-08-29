@@ -853,12 +853,16 @@
    An @font-face has no such ordering rule, so declaring the faces is the only
    form that survives being flattened into a larger stylesheet. `@hanzo/font`
    remains the one place the faces are AUTHORED; this is a copy of its output,
-   the same way the colour tokens are copied rather than fetched. A copy can go
-   stale, and this one did: it shipped Geist under the Zen filename — family
-   "Geist", vendor VRCL, basement.studio as manufacturer — so every surface
-   importing this file rendered Geist while believing it rendered Zen. Check a
-   refresh rather than trusting the name, one command:
-     python3 -c "from fontTools.ttLib import TTFont as T; f=T('assets/fonts/Zen-Variable.woff2'); print(f['name'].getDebugName(1), '|', f['name'].getDebugName(0))"
+   the same way the colour tokens are copied rather than fetched.
+
+   A copy is only as good as what it copied from, and this one went stale: the
+   floor sat at @hanzo/font ^1.8.8, whose faces carry Vercel's vendor tag under
+   our filenames, so every `npm run gen` overwrote the good committed Zen with
+   Geist and 0.5.23 and 0.5.24 both went out that way — the release commits hold
+   the right bytes, the tarballs did not. Two things stop it recurring, each in
+   its own place: from 1.9.2 the font package's build refuses to publish a face
+   that is not its own, and gen-tokens.mjs refuses to copy from anything below
+   that floor.
 
    Why self-hosted rather than a third-party CDN:
    - A sign-in page must not make a third-party request. hanzoai/id refused to

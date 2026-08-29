@@ -1,2 +1,2 @@
 minimumReleaseAgeExclude:
-  - '@hanzo/font@1.8.8'
+  - '@hanzo/font@1.8.8 || 1.9.2'

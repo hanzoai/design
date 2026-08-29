@@ -27,12 +27,34 @@ const tokensDir = join(root, 'tokens')
 // with no author cannot be checked; a copy WITH one is checked every build.
 const require = createRequire(import.meta.url)
 const fontDir = dirname(require.resolve('@hanzo/font/css'))
+
+// A copy is only as good as what it copied FROM, and that had already gone
+// wrong once: the floor here sat at ^1.8.8, whose faces carry Vercel's vendor
+// tag under our filenames, so every `npm run gen` quietly overwrote the good
+// committed Zen with Geist and two releases went out that way. From 1.9.2 the
+// font package's own build refuses to publish a face that is not ours, so a
+// version at or above it is the thing worth asserting — the bytes are its
+// concern, and this is only the copy.
+// Read beside the faces rather than through the specifier: the package's
+// exports map does not publish its own package.json, and it has no reason to.
+const FLOOR = [1, 9, 2]
+const { version } = JSON.parse(readFileSync(join(fontDir, '..', 'package.json'), 'utf8'))
+const got = version.split('.').map(Number)
+// Order is decided by the first component that differs, so 1.10.0 and 2.0.0
+// both clear a 1.9.2 floor.
+const differs = FLOOR.findIndex((n, i) => got[i] !== n)
+if (differs !== -1 && got[differs] < FLOOR[differs])
+  throw new Error(
+    `@hanzo/font ${version} predates the faces verifying themselves; ` +
+      `raise the floor to ${FLOOR.join('.')} rather than copying from it`,
+  )
+
 for (const [from, to] of [
   ['fonts/zen-sans/Zen-Variable.woff2', 'Zen-Variable.woff2'],
   ['fonts/zen-mono/ZenMono-Variable.woff2', 'ZenMono-Variable.woff2'],
 ])
   copyFileSync(join(fontDir, from), join(root, 'assets/fonts', to))
-console.log('gen-tokens: copied 2 variable faces from @hanzo/font')
+console.log(`gen-tokens: copied 2 variable faces from @hanzo/font ${version}`)
 
 // The token files, in the same order styles.css imports them. base.css is the
 // semantic-alias layer (references other vars) — parsed too, so `--background`

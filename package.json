@@ -2,7 +2,7 @@
   "name": "@hanzo/design",
   "version": "0.5.25",
   "packageManager": "pnpm@11.17.0",
-  "description": "Hanzo Design System — monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
+  "description": "Hanzo Design System \u2014 monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
   "license": "MIT OR Apache-2.0",
   "repository": {
     "type": "git",
@@ -41,8 +41,8 @@
     "lint": "node scripts/lint.mjs"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
-    "@hanzo/font": "^1.9.2"
+    "typescript": "7.0.2",
+    "@hanzo/font": "1.9.2"
   },
   "files": [
     "dist",

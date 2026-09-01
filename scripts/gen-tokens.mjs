@@ -31,7 +31,6 @@ const fontDir = dirname(require.resolve('@hanzo/font/css'))
 // A copy is only as good as what it copied FROM, and that had already gone
 // wrong once: the floor here sat at ^1.8.8, whose faces carry Vercel's vendor
 // tag under our filenames, so every `npm run gen` quietly overwrote the good
-// committed Zen with Geist and two releases went out that way. From 1.9.2 the
 // font package's own build refuses to publish a face that is not ours, so a
 // version at or above it is the thing worth asserting — the bytes are its
 // concern, and this is only the copy.
@@ -186,7 +185,7 @@ console.log(`gen-tokens: wrote src/tokens.gen.ts — ${flat.length} tokens acros
 // The entry point says "import THIS one file", and for a long time no bundler
 // could. It was a list of `@import url("tokens/*.css")`, and a relative url
 // resolves against the file doing the importing — so a consumer's
-// `@import "@hanzo/design/styles.css"` sent webpack looking for
+// `@import "@hanzo/font/css"` sent webpack looking for
 // `<their app>/tokens/fonts.css` and the build died on a module it never had.
 // Nested imports also have to precede every other rule, which the spec then
 // invalidates the moment the consumer imports anything before them; browsers

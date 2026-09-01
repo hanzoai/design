@@ -59,7 +59,15 @@ element.style.color      = cssVar('--foreground', '#fff')  // with a fallback
 
 Groups: `colors`, `typography`, `spacing`, `radius`, `elevation`, `motion`, `zIndex`,
 `fonts`, `base` (semantic aliases), plus `cssVars` (every token by its literal
-`--name`). All authored **once** in the token CSS — the single source of truth.
+`--name`).
+
+**Colours come from [`@hanzo/tokens`](../ui/pkgs/tokens).** `tokens/colors.css` is
+NOT hand-authored here — it is that package's generated bundle, pulled in by
+`scripts/gen-tokens.mjs` and flattened into `styles.css`. To change a colour, edit
+`@hanzo/tokens` `src/theme.ts`, run `pnpm --filter @hanzo/tokens gen-css`, then
+`npm run gen` here to re-pull and re-flatten. The other token files (`typography`,
+`spacing`, `radius`, `elevation`, `motion`, `z`, `grid`, `fonts`, `base`) are
+authored here — they carry runtime knobs and element behaviour a flat token cannot.
 
 Everything below is expressed as CSS custom properties, so code copies over 1:1 — the semantic names match `hanzo.ai`'s variables exactly.
 

@@ -4,7 +4,7 @@
 // typed TypeScript module (src/tokens.gen.ts). CSS and code therefore can never
 // drift — you edit a token in ONE place (the CSS) and both the stylesheet and
 // the programmatic API update. Run via `npm run gen` (part of `build`).
-import { readFileSync, writeFileSync, readdirSync, copyFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, copyFileSync, existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -54,6 +54,27 @@ for (const [from, to] of [
 ])
   copyFileSync(join(fontDir, from), join(root, 'assets/fonts', to))
 console.log(`gen-tokens: copied 2 variable faces from @hanzo/font ${version}`)
+
+// tokens/colors.css is NOT hand-authored here — it is @hanzo/tokens' generated
+// bundle, republished so the git/ci/cd surfaces and this package draw the same
+// palette. Pull the current copy before flattening: an edit to a colour is made
+// in @hanzo/tokens src/theme.ts, regenerated there, and picked up here. The
+// checked-in tokens/colors.css is that output, kept in tree so a build with no
+// @hanzo/tokens on hand (a published tarball) still has the palette to flatten.
+function pullColors() {
+  const candidates = []
+  try { candidates.push(require.resolve('@hanzo/tokens/css/colors')) } catch {}
+  candidates.push(join(root, '..', 'ui', 'pkgs', 'tokens', 'dist', 'colors.css'))
+  for (const src of candidates) {
+    if (src && existsSync(src)) {
+      writeFileSync(join(tokensDir, 'colors.css'), readFileSync(src, 'utf8'))
+      console.log(`gen-tokens: pulled tokens/colors.css from ${src}`)
+      return
+    }
+  }
+  console.log('gen-tokens: @hanzo/tokens not resolvable — using committed tokens/colors.css')
+}
+pullColors()
 
 // The token files, in the same order styles.css imports them. base.css is the
 // semantic-alias layer (references other vars) — parsed too, so `--background`

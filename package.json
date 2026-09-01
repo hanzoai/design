@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "typescript": "7.0.2",
-    "@hanzo/font": "1.9.2"
+    "@hanzo/font": "^1.9.3"
   },
   "files": [
     "dist",

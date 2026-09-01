@@ -309,11 +309,8 @@ export const zIndex = {
 
 /** fonts tokens (from tokens/fonts.css). Values are raw CSS. */
 export const fonts = {
-  'font-sans': '"Zen",ui-sans-serif,system-ui,sans-serif',
-  'font-display': 'var(--font-sans)',
-  'font-mono': '"Zen Mono",ui-monospace,SFMono-Regular,monospace',
-  'font-serif': 'Georgia,serif',
-  'font-feature-settings': 'normal',
+  'font-sans': 'Zen, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  'font-mono': 'Zen Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
 } as const
 
 /** base tokens (from tokens/base.css). Values are raw CSS. */
@@ -596,11 +593,8 @@ export const cssVars = {
   '--z-toast': '800',
   '--z-tooltip': 'var(--z-popover)',
   '--z-notification': 'var(--z-toast)',
-  '--font-sans': '"Zen",ui-sans-serif,system-ui,sans-serif',
-  '--font-display': 'var(--font-sans)',
-  '--font-mono': '"Zen Mono",ui-monospace,SFMono-Regular,monospace',
-  '--font-serif': 'Georgia,serif',
-  '--font-feature-settings': 'normal',
+  '--font-sans': 'Zen, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  '--font-mono': 'Zen Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
   '--ring-offset': '-2px',
 } as const
 

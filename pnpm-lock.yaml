@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@hanzo/font':
-        specifier: 1.9.2
-        version: 1.9.2(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
+        specifier: ^1.9.3
+        version: 1.9.3(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -20,8 +20,8 @@ packages:
   '@emnapi/runtime@1.11.3':
     resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
 
-  '@hanzo/font@1.9.2':
-    resolution: {integrity: sha512-CXKXhfRgAj9SnhRJtraS6jEToGz74hbrMSJm85Kp8y6uN64zOH+IvohpWT/Surh9Qn1KWIGXsIx216JMa++X6A==}
+  '@hanzo/font@1.9.3':
+    resolution: {integrity: sha512-PVCyIFMp/wBVfLsWczVWC3VVxbUzlTDwc/LBRgyT6Fizk09aACq8ByRmbJp0FGKVd1BbUDeekvfv0g1eoj4OvQ==}
     peerDependencies:
       next: '>=13.2.0'
 
@@ -471,7 +471,7 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@hanzo/font@1.9.2(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))':
+  '@hanzo/font@1.9.3(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))':
     dependencies:
       next: 16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
 

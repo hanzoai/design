@@ -5,3 +5,8 @@ dist/
 node_modules
 dist
 dist-cjs
+
+# Local symlinks to LLM.md
+CLAUDE.md
+AGENTS.md
+GEMINI.md

@@ -37,6 +37,15 @@
   --hanzo-black:#0A0A0B;
   --hanzo-white:#FFFFFF;
 
+  /* ——— art: four hues, for artwork only ———
+     Light, never paint. They colour hero art and the few soft glows that give a
+     section form; chrome, type and every control stay on the monochrome ladder
+     below. The same in both themes, because art is not themed. */
+  --art-tide:#2F6BFF;
+  --art-iris:#8B5CF6;
+  --art-ember:#FF7A3D;
+  --art-glow:#F4F1FF;
+
   /* ——— the opacity ladder: the real palette ——— */
   --white-03:rgb(255 255 255 / .03); /* the raised fill */
   --white-05:rgb(255 255 255 / .05);

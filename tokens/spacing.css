@@ -59,6 +59,11 @@
   --hero-y:3rem;              /* py-12 on a phone → py-20 at md */
   --hero-y-lg:4.5rem;         /* py-18 on a phone → py-32 at md */
   --header-height:3.5rem;     /* 56px is the phone bar; 64px from md */
+  /* The fixed bars a surface actually DRAWS, which base.css's scroll padding
+     clears. 0 until a surface with a fixed header or dock sets them, usually
+     from a measurement; --header-height is the bar's designed size. */
+  --header:0px;
+  --dock:0px;
 
   /* ——— touch ——— */
   /* 44px is the floor a pointer-coarse target may render at (Apple HIG 44pt /

@@ -388,6 +388,11 @@
   --hero-y:3rem;              /* py-12 on a phone → py-20 at md */
   --hero-y-lg:4.5rem;         /* py-18 on a phone → py-32 at md */
   --header-height:3.5rem;     /* 56px is the phone bar; 64px from md */
+  /* The fixed bars a surface actually DRAWS, which base.css's scroll padding
+     clears. 0 until a surface with a fixed header or dock sets them, usually
+     from a measurement; --header-height is the bar's designed size. */
+  --header:0px;
+  --dock:0px;
 
   /* ——— touch ——— */
   /* 44px is the floor a pointer-coarse target may render at (Apple HIG 44pt /
@@ -844,6 +849,10 @@
        pinned. It is the single most common reason a mobile layout that was
        verified in portrait comes apart on its side. */
     -webkit-text-size-adjust:100%;
+    /* A scroll the browser makes for the page — an anchor jump, focus moving,
+       scrollIntoView — lands clear of a fixed header or dock. A surface that
+       has one sets --header / --dock; one that has none scrolls to the edge. */
+    scroll-padding-block:var(--header,0px) var(--dock,0px);
   }
   /* Each font-family carries the stack as a literal fallback. --font-sans lives in
      tokens/fonts.css, which a surface may legitimately import separately; without
@@ -892,6 +901,16 @@
   :where(button,[role=button],a[role=button],summary):active:not(:disabled){
     transform:scale(.98);
   }
+
+  /* ——— the tap ———
+     No grey flash where a finger lands, and no wait for a double-tap zoom on
+     a control. A dialog or drawer scrolls itself and stops at its end rather
+     than carrying the page behind it along. */
+  :where(a,button,[role=button],input,select,textarea,summary,label){
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+  :where(dialog,[role=dialog],[data-drawer]){overscroll-behavior:contain}
 
   /* ——— controls ———
      A bare <input> renders in the UA's face (Arial) at the UA's size with the

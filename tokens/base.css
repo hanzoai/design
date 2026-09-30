@@ -29,6 +29,10 @@
        pinned. It is the single most common reason a mobile layout that was
        verified in portrait comes apart on its side. */
     -webkit-text-size-adjust:100%;
+    /* A scroll the browser makes for the page — an anchor jump, focus moving,
+       scrollIntoView — lands clear of a fixed header or dock. A surface that
+       has one sets --header / --dock; one that has none scrolls to the edge. */
+    scroll-padding-block:var(--header,0px) var(--dock,0px);
   }
   /* Each font-family carries the stack as a literal fallback. --font-sans lives in
      tokens/fonts.css, which a surface may legitimately import separately; without
@@ -77,6 +81,16 @@
   :where(button,[role=button],a[role=button],summary):active:not(:disabled){
     transform:scale(.98);
   }
+
+  /* ——— the tap ———
+     No grey flash where a finger lands, and no wait for a double-tap zoom on
+     a control. A dialog or drawer scrolls itself and stops at its end rather
+     than carrying the page behind it along. */
+  :where(a,button,[role=button],input,select,textarea,summary,label){
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+  :where(dialog,[role=dialog],[data-drawer]){overscroll-behavior:contain}
 
   /* ——— controls ———
      A bare <input> renders in the UA's face (Arial) at the UA's size with the

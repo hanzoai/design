@@ -55,6 +55,18 @@ for (const [from, to] of [
   copyFileSync(join(fontDir, from), join(root, 'assets/fonts', to))
 console.log(`gen-tokens: copied 2 variable faces from @hanzo/font ${version}`)
 
+// THE COLOURS ARE COPIED TOO, for the reason the faces are. @hanzo/tokens owns
+// the colour system (src/theme.ts) and emits it as `css/colors`; this package
+// republishes that sheet. It used to be placed by hand, and twice a token was
+// added straight into the copy — the art hues, then `--edge` — under a header
+// that says DO NOT EDIT, so the author no longer described what shipped. A copy
+// made on every gen cannot drift; a token added here is overwritten, which is
+// the point: it goes in theme.ts.
+const colors = require.resolve('@hanzo/tokens/css/colors')
+const tokensVersion = JSON.parse(readFileSync(join(dirname(colors), '..', 'package.json'), 'utf8')).version
+copyFileSync(colors, join(tokensDir, 'colors.css'))
+console.log(`gen-tokens: copied colors.css from @hanzo/tokens ${tokensVersion}`)
+
 
 // The token files, in the same order styles.css imports them. base.css is the
 // semantic-alias layer (references other vars) — parsed too, so `--background`

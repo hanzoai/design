@@ -11,6 +11,9 @@ importers:
       '@hanzo/font':
         specifier: ^1.9.3
         version: 1.9.3(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
+      '@hanzo/tokens':
+        specifier: ^1.0.3
+        version: 1.0.3
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -24,6 +27,9 @@ packages:
     resolution: {integrity: sha512-PVCyIFMp/wBVfLsWczVWC3VVxbUzlTDwc/LBRgyT6Fizk09aACq8ByRmbJp0FGKVd1BbUDeekvfv0g1eoj4OvQ==}
     peerDependencies:
       next: '>=13.2.0'
+
+  '@hanzo/tokens@1.0.3':
+    resolution: {integrity: sha512-4TovMqmxOMmr1xmSKC5DEDhAQG32dmUZi0i1CcWOwPlll03c4q495ojVU7+0VxN8OcVWsl3m4Z7/JOI0J42e2A==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -474,6 +480,8 @@ snapshots:
   '@hanzo/font@1.9.3(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))':
     dependencies:
       next: 16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+
+  '@hanzo/tokens@1.0.3': {}
 
   '@img/colour@1.1.0':
     optional: true

@@ -1,2 +1,5 @@
+# Our own packages are not a supply-chain window: the release-age gate is for a
+# third-party publish nobody has looked at yet, and this package copies its
+# colours and faces out of two of ours on every build.
 minimumReleaseAgeExclude:
-  - '@hanzo/font@1.8.8 || 1.9.2'
+  - '@hanzo/*'

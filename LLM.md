@@ -13,9 +13,9 @@ The derivation runs one way and never back:
       -> @hanzo/brand   who a host is, and which mark it gets
         -> @hanzo/design  how anything built for that brand should look
 
-`tokens/*.css` is the source of truth. Ten hand-authored files — colors,
-typography, spacing, grid, radius, elevation, motion, z, fonts, base — and
-everything else is derived from them. `scripts/gen-tokens.mjs` parses all ten in
+`tokens/*.css` is the source of truth. Ten files — colors (copied from
+`@hanzo/tokens`), typography, spacing, grid, radius, elevation, motion, z, fonts,
+base — and everything else is derived from them. `scripts/gen-tokens.mjs` parses all ten in
 a fixed order and emits `src/tokens.gen.ts` and the flattened `styles.css`. Both
 are generated AND committed; never hand-edit either.
 
@@ -43,24 +43,15 @@ two that happen to agree.
 
 ## How this ships
 
-    push  ->  github.com/hanzoai/design        (a mirror)
-      ->  git.hanzo.ai/hanzoai/design           CANONICAL
-              .hanzo/workflows/publish.yml      publishes @hanzo/design to npm
+    push  ->  git.hanzo.ai/hanzoai/design       (origin)
+          ->  github.com/hanzoai/design         (github)
+    pnpm publish                                 from a checkout; prepublishOnly
+                                                 runs `pnpm build`
 
-`.github/workflows/` is empty. The forge reads `.hanzo/workflows/`, which uses
-GitHub Actions syntax, so a workflow moves between the two by changing directory.
-Gitea's own scheduler keeps the mirror current — there is no sync job here,
-because a mirror does not need one.
-
-`publish.yml` is the SOLE publisher. It fires when `version` in `package.json`
-changes on `main`, skips a version already on the registry, and gates on
-`pnpm build`, which regenerates the tokens, runs the suite and emits `dist/`.
-`dist/` is gitignored, so publishing without that build ships an empty `.`
-export. Needs `NPM_TOKEN` as a forge secret.
-
-A repo only gets a forge runner if its Actions unit is on, and a migrate leaves
-that off — `hanzoai/mirrors` `reconcile.py` switches it on for any repo carrying
-`.hanzo/workflows`.
+No workflow publishes this package. `pnpm build` is the gate — it regenerates
+the tokens, runs the suite and emits `dist/`; `dist/` is gitignored, so a
+publish without it ships an empty `.` export. `hanzo.yml` runs the same build
+plus a `git diff` over the generated files on CI.
 
 ## Structure
 ```
@@ -96,6 +87,27 @@ deterministic, so the same input always yields the same `tokens.gen.ts`, and
 `check-tokens.mjs` fails the build if a token stops resolving or a contrast
 ratio drops below its floor. Everything outside `tokens/` is either generated
 from it or hand-authored prose.
+
+**`tokens/colors.css` is not authored here.** `@hanzo/tokens` (hanzoai/ui
+`pkg/tokens/src/theme.ts`) owns the colour system; `gen` copies its
+`css/colors` over this file on every build, the way it copies the faces from
+`@hanzo/font`. A colour token goes in theme.ts, a tokens release, then a bump of
+the devDependency here.
+
+## A person's preference — `src/preference.ts`
+
+`vars(pref)` maps a preference to custom properties and touches no document;
+`@hanzo/appearance` applies it. Axes: `type` (`--type-scale`), `ratio`
+(`--type-ratio`), `modular` (display rungs), `density` (`--density`), `font`
+(`--font-sans`), `width` (`--container-*`), `radius` (`--radius-scale`, every
+`--radius-*` but the pill), `accent`, and `theme`, which is a class and emits
+nothing here.
+
+An accent is a family: `--primary`, `--accent`, their `-foreground` (design's
+`#0a0a0a` or `#fafafa`, whichever contrasts more — `ink()`), and their `-hover`
+(`color-mix` toward that ink). A colour `brightness()` cannot read — named
+colours, wide-gamut spaces — is not an accent. `check-preference.mjs` asserts
+every emitted name is one a token file declares or reads.
 
 ## Borders — ONE ladder, graded by duty
 Every boundary is cut from the alpha ladder, so every boundary composites

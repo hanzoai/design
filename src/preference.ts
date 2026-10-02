@@ -26,6 +26,8 @@
  * preview and a server render apply it identically.
  */
 
+import { cssVars } from "./tokens.gen.js";
+
 export type Density = "compact" | "default" | "comfortable";
 
 /**
@@ -36,6 +38,15 @@ export type Face = "default" | "system" | "serif" | "mono";
 
 /** How wide the page runs before it stops. */
 export type Measure = "narrow" | "default" | "wide";
+
+/**
+ * Which ground the page stands on. `system` follows the device and keeps
+ * following it; absent is the install's answer, which for Hanzo is dark.
+ */
+export type Scheme = "system" | "light" | "dark";
+
+/** How round the corners are — one multiplier on every radius but the pill. */
+export type Corner = "sharp" | "default" | "round";
 
 export interface Preference {
   /** Multiplier on the type ramp. 1 is the published scale. */
@@ -56,8 +67,18 @@ export interface Preference {
   font?: Face;
   /** How wide the page runs — the measure, not the window. */
   width?: Measure;
-  /** A CSS colour for --primary / --accent. Rejected unless it is one. */
+  /**
+   * A CSS colour for --primary / --accent. Rejected unless it is one this module
+   * can read, because the ink that sits ON it and its hover are derived from it.
+   */
   accent?: string;
+  /**
+   * Light, dark or the device's. A class on <html>, not a custom property, so
+   * `vars()` emits nothing for it — `@hanzo/appearance` applies it.
+   */
+  theme?: Scheme;
+  /** How round the corners are. Writes `--radius-scale`. */
+  radius?: Corner;
 }
 
 /**
@@ -172,6 +193,18 @@ const MEASURE: Partial<Record<Measure, { max: string; prose: string; wide: strin
   wide: { max: "96rem", prose: "56rem", wide: "86rem" },
 };
 
+/**
+ * Corners scale by ONE multiplier, the way type and spacing do. `--radius-scale`
+ * is read by every `--radius-*` rung in `tokens/radius.css` and by every radius
+ * @hanzo/ui hands to gui, so a person asking for softer corners gets them on the
+ * stylesheet and on every component at once. The pill is exempt in both places:
+ * 9999px is not a measurement, it is "a capsule".
+ */
+const CORNER: Partial<Record<Corner, number>> = {
+  sharp: 0.5,
+  round: 1.5,
+};
+
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
 /** Trim to 4dp so a multiplier cannot emit a 17-digit float into a stylesheet. */
@@ -194,6 +227,79 @@ export function isColor(v: string): boolean {
     /^(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch|color)\([^;{}]*\)$/i.test(s) ||
     /^[a-z]{3,20}$/i.test(s)
   );
+}
+
+/**
+ * The two inks a filled control can carry — read from design's own tokens, so a
+ * derived label is the same black or white the monochrome primary already
+ * wears: its label on the dark ground, and its fill.
+ */
+const DARK_INK = cssVars["--primary-foreground"];
+const LIGHT_INK = cssVars["--primary"];
+
+const channel = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+
+/** WCAG relative luminance of an sRGB triple in 0..1. */
+const luminance = (r: number, g: number, b: number) =>
+  0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+
+/** A number, a percentage of `scale`, or an angle in degrees. */
+const num = (t: string, scale: number) => {
+  const n = parseFloat(t);
+  return t.trim().endsWith("%") ? (n / 100) * scale : n;
+};
+
+/**
+ * How bright a colour is, as relative luminance — or undefined when this module
+ * cannot read it.
+ *
+ * It reads what a person or an org actually stores: hex, rgb(), hsl(), and the
+ * OK spaces, whose L is the cube root of a luminance-like quantity, so L³ stands
+ * in for it closely enough to pick between black and white. Named colours and
+ * the wide-gamut spaces are refused rather than guessed at — a wrong guess here
+ * is an unreadable label on the one loud control a page has.
+ */
+export function brightness(v: string): number | undefined {
+  const s = v.trim().toLowerCase();
+  const hex = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.exec(s);
+  if (hex) {
+    const h = hex[1];
+    const full = h.length <= 4 ? [...h.slice(0, 3)].map((c) => c + c).join("") : h.slice(0, 6);
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+    return luminance(r, g, b);
+  }
+  const fn = /^(rgba?|hsla?|oklch|oklab)\(([^)]*)\)$/.exec(s);
+  if (!fn) return undefined;
+  const parts = fn[2].split(/[\s,/]+/).filter(Boolean);
+  if (parts.length < 3 || parts.slice(0, 3).some((p) => !Number.isFinite(parseFloat(p)))) return undefined;
+  if (fn[1].startsWith("rgb")) {
+    const [r, g, b] = parts.slice(0, 3).map((p) => clamp(num(p, 255), 0, 255) / 255);
+    return luminance(r, g, b);
+  }
+  if (fn[1].startsWith("hsl")) {
+    const h = ((parseFloat(parts[0]) % 360) + 360) % 360;
+    const sat = clamp(num(parts[1], 1), 0, 1);
+    const l = clamp(num(parts[2], 1), 0, 1);
+    const k = (n: number) => (n + h / 30) % 12;
+    const a = sat * Math.min(l, 1 - l);
+    const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+    return luminance(f(0), f(8), f(4));
+  }
+  return Math.pow(clamp(num(parts[0], 1), 0, 1), 3);
+}
+
+const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+/**
+ * The ink that reads on a colour: design's black or design's white, whichever
+ * contrasts more. Undefined when the colour cannot be read.
+ */
+export function ink(v: string): string | undefined {
+  const y = brightness(v);
+  if (y === undefined) return undefined;
+  const dark = brightness(DARK_INK) ?? 0;
+  const light = brightness(LIGHT_INK) ?? 1;
+  return contrast(y, dark) >= contrast(y, light) ? DARK_INK : LIGHT_INK;
 }
 
 /**
@@ -252,11 +358,26 @@ export function vars(p: Preference): Record<string, string> {
     out["--container-wide"] = measure.wide;
   }
 
-  if (p.accent && isColor(p.accent)) {
-    // Both names, because the ramp uses --primary for action surfaces and
-    // --accent for selection. One hue, stated once, landing on both.
-    out["--primary"] = p.accent.trim();
-    out["--accent"] = p.accent.trim();
+  const corner = p.radius ? CORNER[p.radius] : undefined;
+  if (corner) out["--radius-scale"] = round(corner);
+
+  // An accent is a FAMILY, not one property. The ramp uses --primary for action
+  // surfaces and --accent for the loud control gui draws, and each of them is
+  // worn with a label and a hover. Setting the fill alone left the label at the
+  // monochrome ink — white on amber in light, 1.9:1 — and the hover at the grey
+  // the fill used to be, so a blue button turned grey under the cursor. So the
+  // fill, the ink that reads on it and the hover that deepens it are stated
+  // together, from the one colour, or not at all.
+  const fill = p.accent && isColor(p.accent) ? p.accent.trim() : undefined;
+  const label = fill ? ink(fill) : undefined;
+  if (fill && label) {
+    const hover = `color-mix(in oklab, ${fill} 85%, ${label})`;
+    out["--primary"] = fill;
+    out["--primary-foreground"] = label;
+    out["--primary-hover"] = hover;
+    out["--accent"] = fill;
+    out["--accent-foreground"] = label;
+    out["--accent-hover"] = hover;
   }
 
   return out;

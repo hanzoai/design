@@ -11,6 +11,7 @@
  * rung ever stops carrying its multiplier.
  */
 import { readFileSync } from "node:fs";
+import { stripTypeScriptTypes } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -18,28 +19,19 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 
 // Load the source directly — this package ships tokens, and the preference
-// module is small enough to evaluate without a build step in the check.
-const src = readFileSync(join(root, "src/preference.ts"), "utf8");
-const js = src
-  .replace(/^import[^\n]*\n/gm, "")
-  .replace(/export (type|interface) [\s\S]*?\n}\n/g, "")
-  .replace(/export type [^\n]*\n/g, "")
-  // A generic annotation may nest (`Partial<Record<Face, string>>`), and
-  // stopping at the first `>` leaves `, string>` behind, so Function() fails to
-  // parse for a reason that has nothing to do with the preference. One level of
-  // nesting is matched explicitly — balanced, and it cannot run past the
-  // annotation the way a lookahead to the initializer can (that ate a function
-  // body, because a return type has no initializer to stop at).
-  .replace(/:\s*\w+<(?:[^<>]|<[^<>]*>)*>/g, "")
-  .replace(/: Preference/g, "")
-  .replace(/: Density/g, "")
-  .replace(/: string/g, "")
-  .replace(/: number/g, "")
-  .replace(/: boolean/g, "")
-  .replace(/export /g, "");
+// module is small enough to evaluate without a build step in the check. Node
+// erases the types itself; a pile of regexes did it before and broke on every
+// annotation shape it had not met yet.
+// The module reads design's own inks out of the generated token table, so the
+// table is evaluated ahead of it in the same scope, imports dropped.
+const source = (f) =>
+  stripTypeScriptTypes(readFileSync(join(root, f), "utf8"))
+    .replace(/^import[^\n]*\n/gm, "")
+    .replace(/^export /gm, "");
+const js = source("src/tokens.gen.ts") + "\n" + source("src/preference.ts");
 
-const mod = new Function(`${js}; return { vars, css, isColor, TYPE_MIN, TYPE_MAX };`)();
-const { vars, css, isColor, TYPE_MIN, TYPE_MAX } = mod;
+const mod = new Function(`${js}; return { vars, css, isColor, ink, brightness, TYPE_MIN, TYPE_MAX };`)();
+const { vars, css, isColor, ink, brightness, TYPE_MIN, TYPE_MAX } = mod;
 
 let failed = 0;
 const check = (name, fn) => {
@@ -195,6 +187,57 @@ check("a colour lands on both --primary and --accent", () => {
   eq(v["--accent"], "#808000");
 });
 
+check("an accent brings its own ink and hover, on both names", () => {
+  const v = vars({ accent: "#3b82f6" });
+  for (const k of ["--primary", "--primary-foreground", "--primary-hover", "--accent", "--accent-foreground", "--accent-hover"]) {
+    ok(k in v, `missing ${k}`);
+  }
+  eq(v["--primary-foreground"], v["--accent-foreground"], "one ink:");
+  eq(v["--primary-hover"], "color-mix(in oklab, #3b82f6 85%, #0a0a0a)");
+});
+
+check("the ink is whichever of design's two reads better — 4.5:1 on every preset", () => {
+  const lum = (hex) => brightness(hex);
+  const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  for (const hue of ["#808000", "#3b82f6", "#8b5cf6", "#f43f5e", "#f59e0b", "#fafafa", "#0a0a0a"]) {
+    const label = ink(hue);
+    ok(label === "#0a0a0a" || label === "#fafafa", `${hue} -> ${label}`);
+    const other = label === "#0a0a0a" ? "#fafafa" : "#0a0a0a";
+    ok(ratio(lum(hue), lum(label)) >= ratio(lum(hue), lum(other)), `${hue}: ${label} is the weaker ink`);
+  }
+  eq(ink("#f59e0b"), "#0a0a0a", "amber:");
+  eq(ink("#0a0a0a"), "#fafafa", "black:");
+});
+
+check("every notation an accent is stored in reads the same brightness", () => {
+  const near = (a, b) => Math.abs(a - b) < 0.01;
+  const y = brightness("#3b82f6");
+  ok(near(brightness("#38f"), brightness("#3388ff")), "short hex");
+  ok(near(brightness("rgb(59 130 246)"), y), "rgb space");
+  ok(near(brightness("rgba(59, 130, 246, .5)"), y), "rgba comma");
+  ok(near(brightness("hsl(217 91% 60%)"), y), "hsl");
+  ok(Math.abs(brightness("oklch(62.3% 0.188 259.8)") - y) < 0.03, "oklch");
+});
+
+check("a colour this module cannot read is not an accent", () => {
+  for (const unread of ["rebeccapurple", "color(display-p3 1 0 0)", "lab(50 20 30)"]) {
+    eq(ink(unread), undefined, unread);
+    ok(!("--primary" in vars({ accent: unread })), `accepted ${unread}`);
+  }
+});
+
+check("corners are ONE knob, and default writes nothing", () => {
+  eq(vars({ radius: "sharp" }), { "--radius-scale": "0.5" });
+  eq(vars({ radius: "round" }), { "--radius-scale": "1.5" });
+  eq(vars({ radius: "default" }), {});
+  eq(vars({ radius: "pill" }), {}, "unknown:");
+});
+
+check("the theme is a class, so it emits no property", () => {
+  eq(vars({ theme: "light" }), {});
+  eq(vars({ theme: "system" }), {});
+});
+
 check("a NON-colour is dropped, never sanitised into something plausible", () => {
   for (const bad of [
     "red; background-image:url(//evil/x)",
@@ -226,7 +269,7 @@ check("every emitted name is one the token files actually read", () => {
   // A variable nothing reads is a write into another document — the exact
   // mistake this package exists to prevent. The knobs are READ by the ramps
   // (as var(--knob, 1)); the colours are DECLARED by colors.css.
-  const files = ["tokens/typography.css", "tokens/spacing.css", "tokens/grid.css", "tokens/colors.css"];
+  const files = ["tokens/typography.css", "tokens/spacing.css", "tokens/grid.css", "tokens/colors.css", "tokens/radius.css"];
   const text = files.map((f) => readFileSync(join(root, f), "utf8")).join("\n");
   const declared = new Set([...text.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm)].map((m) => m[1]));
   const read = new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
@@ -234,7 +277,7 @@ check("every emitted name is one the token files actually read", () => {
   // EVERY axis, not a sample — an axis missing here is an axis whose names
   // nothing gates, which is how a knob starts writing into another document.
   const emitted = Object.keys(
-    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", width: "wide", accent: "#fff" })
+    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", width: "wide", accent: "#fff", radius: "round", theme: "dark" })
   );
   const orphans = emitted.filter((k) => !declared.has(k) && !read.has(k));
   eq(orphans, [], "emitted names no token file declares or reads:");

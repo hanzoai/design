@@ -213,8 +213,16 @@ composition over them — data and layout, no design decisions:
 | components | **@hanzo/ui** | everything assembled from the three above — and the ONE `createGui` table (`@hanzo/ui/gui-config`) that binds the ramp to gui's `$n` |
 
 `hanzo-design-lint` is the gate. Rules 1-8 catch a surface writing a VALUE it
-should have named; **rules 9-12 catch a surface OWNING a layer it should have
-imported**, which is the failure that costs a fleet its coherence rather than a
+should have named — and rule 6, `inline-style`, catches it writing CSS at all:
+ANY `style={…}` object in a `.jsx`/`.tsx` file, literal or named, because a
+token read through `style` still bypasses the gui prop or @hanzo/ui component
+that should carry it. A value nothing else can express (a per-frame transform on
+a raw `<canvas>`, a custom property a package reads) passes when a comment that
+begins `inline-style:` sits on its line or the line above, saying why. This
+package's own `components/` are the self-contained parts — plain React, inline
+`var()`s by design — so the repo's `hanzo-design.allow.json` holds their count.
+
+**Rules 9-12 catch a surface OWNING a layer it should have imported**, which is the failure that costs a fleet its coherence rather than a
 component its colour. Each has shipped:
 
 - **`local-token-table`** — a second `createGui`/`createTokens`/`createFont`.

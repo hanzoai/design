@@ -90,7 +90,8 @@ It checks eight things, each of which has shipped to production at least once:
 3. `raw-z-index` — a magic number instead of the ladder
 4. `raw-font-size` — `px`/`pt` instead of the scale
 5. `all-caps` — an uppercase label that is not an eyebrow
-6. `inline-style` — a literal colour/size in `style={{…}}` (a `var()` is fine)
+6. `inline-style` — any `style={…}` object; say it as @hanzo/gui props or an @hanzo/ui
+   component, and a value nothing else can express carries `// inline-style: <why>`
 7. `icon-set` — an icon library that is not lucide
 8. `wrong-package` — `@hanzoai/design`, which resolves to nothing
 

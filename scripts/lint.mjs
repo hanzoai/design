@@ -173,24 +173,32 @@ function lintFile(abs, root) {
     }
   }
 
-  // 6. no inline style carrying design decisions. It outranks every token and
-  //    every theme, which is exactly why it keeps being reached for.
-  //    Only a LITERAL is a violation: `color:'#fff'`, `fontSize:13`. An
-  //    identifier (`background:FILL[variant]`) is indirection we cannot read,
-  //    and guessing there would train people to ignore the linter.
-  for (const m of src.matchAll(/style=\{\{([^}]*)\}\}/g)) {
-    const body = m[1]
-    const bad = ['color', 'background', 'backgroundColor', 'fontSize', 'boxShadow', 'borderColor']
-      .filter((k) => {
-        const val = styleValue(body, k)
-        if (val === null) return false
-        if (/var\(/.test(val)) return false
-        if (/^['"`]?(transparent|none|inherit|currentColor|unset|initial|auto)['"`]?$/i.test(val)) return false
-        return /^['"`]/.test(val) || /^-?\d/.test(val)
-      })
-    if (bad.length)
-      flag(rel, lineOf(src, m.index), 'inline-style', `style={{ ${bad.join(', ')} }}`,
-        'move to a class; if it must be inline, the value must be var(--token)')
+  // 6. no inline style. A `style={…}` object is a second way to style beside
+  //    the one the system has — @hanzo/gui props, @hanzo/ui components and the
+  //    tokens under both — and it outranks every class and every theme, which
+  //    is exactly why it keeps being reached for. ANY style object counts:
+  //    `style={{ color: 'var(--x)' }}` names a token and still bypasses the prop
+  //    that would carry it, and `style={STYLE}` is the same object behind a name.
+  //    The exception is a value nothing else can express — a transform computed
+  //    per frame on a raw <canvas>, a custom property a package reads — and it
+  //    says why in a comment that begins `inline-style:`, on its own line or the
+  //    one above. That comment is what passes it: an unstated reason is a
+  //    violation, a stated one is a line a reviewer can read and refuse.
+  if (/\.(jsx|tsx)$/.test(rel)) {
+    const rawLines = raw.split('\n')
+    const srcLines = src.split('\n')
+    const because = (n) => /(\/\/|\/\*)\s*inline-style:/.test(rawLines[n] ?? '')
+    for (const m of src.matchAll(/(^|[\s{(,])style=\{/gm)) {
+      const line = lineOf(src, m.index + m[1].length)
+      const col = m.index + m[1].length - (src.lastIndexOf('\n', m.index) + 1)
+      // A `//` before it on the line, outside a string, is a comment talking
+      // about a style object rather than writing one.
+      const head = (srcLines[line - 1] ?? '').slice(0, col).replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '')
+      if (head.includes('//')) continue
+      if (because(line - 1) || because(line - 2)) continue
+      flag(rel, line, 'inline-style', 'style={…}',
+        'say it as @hanzo/gui props or an @hanzo/ui component; a value nothing else can express carries `// inline-style: <why>`')
+    }
   }
 
   // 7. one icon set.

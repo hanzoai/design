@@ -1,0 +1,5 @@
+{
+  "_": "What this package's own tree owes hanzo-design-lint, per rule. It may only shrink.",
+  "_inline-style": "components/ are the self-contained parts: plain React that drops into any host with no gui underneath, so every style they set is an inline var() by design (docs/README.md). A surface built on @hanzo/gui owes none.",
+  "inline-style": 74
+}

@@ -23,7 +23,13 @@
   *{box-sizing:border-box;border-color:var(--border)}
   html{
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
     text-rendering:optimizeLegibility;
+    /* The page never scrolls sideways. On the root box as well as <body>,
+       because the scrollport is the documentElement; `clip` rather than
+       `hidden`, so neither becomes a scroll container and `sticky` still
+       holds. */
+    overflow-x:clip;
     scroll-behavior:smooth;
     /* iOS inflates text when a phone is rotated to landscape unless this is
        pinned. It is the single most common reason a mobile layout that was
@@ -34,14 +40,24 @@
        has one sets --header / --dock; one that has none scrolls to the edge. */
     scroll-padding-block:var(--header,0px) var(--dock,0px);
   }
+  /* A slide settles where it begins: a page whose sections state
+     `scroll-snap-align` is the scroller's half here. `proximity`, never
+     `mandatory`, so a long section never holds a reader; a page with no snap
+     points is untouched. */
+  @media (min-width:1024px) and (prefers-reduced-motion:no-preference){
+    :where(html){scroll-snap-type:y proximity}
+  }
   /* Each font-family carries the stack as a literal fallback. --font-sans lives in
      tokens/fonts.css, which a surface may legitimately import separately; without
      the fallback an unresolved var() makes font-family invalid and the UA drops to
      its SERIF default — the whole console silently rendered in Times. */
-  body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings);overflow-wrap:break-word}
+  /* The insets keep content out of the notch and the home indicator on a page
+     drawn under them (viewport-fit=cover); env() is 0 on a flat screen. The
+     top one is the header's to pay. */
+  body{margin:0;padding:0 var(--safe-right,0px) var(--safe-bottom,0px) var(--safe-left,0px);overflow-x:clip;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings);overflow-wrap:break-word}
   h1,h2,h3,h4{margin:0;font-family:var(--font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));letter-spacing:var(--tracking-tight);color:var(--text-primary)}
   p{margin:0;text-wrap:pretty}
-  code,pre,kbd{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
+  code,pre,kbd,samp{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
   /* No `transition` here: the shared interactive rule below states one, and an
      `a` selector (0,0,1) would outrank that :where() (0,0,0) and replace the
      whole shorthand — anchors would transition colour and nothing else. */
@@ -53,7 +69,9 @@
      is a component states its own hover. The old rule also re-set `color` to the
      value `a` already has — a no-op that only served to outrank a component's own
      hover colour. */
-  :is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover{text-decoration:underline}
+  /* A list or a cell inside chrome is not running text: nav, aside, header and
+     the shell's slots carry links that never underline. */
+  :is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover:not(:is(nav,aside,header,[role=navigation],[data-hanzo-shell],[data-slot=rail],[data-slot=bar]) a){text-decoration:underline}
 
   /* ——— the smooth ———
      Every interactive element in the reference transitions its colour, its fill
@@ -153,12 +171,38 @@
   :where(input,textarea)::placeholder{color:var(--text-disabled)}
   :where(input,select,textarea,button):disabled{opacity:.5;cursor:not-allowed}
   :where(button,[role=button],summary,label,select){cursor:pointer}
+  /* A bare <button> loses the UA's outset bevel and grey fill. A button that
+     wants an edge or a ground states one, and any rule at all outranks this. */
+  :where(button){border:0;background:none}
+
+  /* ——— the pointer floor ———
+     WCAG 2.5.8 AA's 24px, for every pointer; the thumb's 44px is below, under
+     pointer:coarse. A min-height cannot size an inline box, so a header or
+     footer link is drawn as a box first. An icon-only control has no text to
+     widen it, so it is a centred box too.
+
+     `:only-child` counts ELEMENTS: `<a>Docs <svg/></a>` matches as well, and a
+     label+icon control states its own `justify-content`. */
+  :where(button,[role=button],header a[href],footer a[href]){min-height:24px}
+  :where(header a[href],footer a[href]){display:inline-flex;align-items:center}
+  :where(:is(a[href],button,[role=button]):has(> svg:only-child)){display:inline-flex;align-items:center;justify-content:center}
+
+  /* MONO KEEPS ITS CELLS. Zen Mono fuses `--` into one glyph, and a brand's
+     --font-feature-settings rides down into it from <body>, so a command meant
+     to be retyped draws one column short. Wherever the mono face is asked for —
+     these elements, @hanzo/ui's mono cell, or a style naming the token — every
+     character keeps its cell. After the controls' `font:inherit`, which would
+     otherwise hand a mono button its parent's ligatures back. */
+  :where(code,pre,kbd,samp,.hz-mono,[style*='--font-mono']){font-variant-ligatures:none;font-feature-settings:normal}
 
   /* ——— media ———
      An image, a video or an embed at its intrinsic width is the usual cause of a
      390px page that scrolls sideways. */
   :where(img,svg,video,canvas,iframe,picture,object){max-width:100%}
-  :where(img,video){height:auto}
+  /* `auto` keeps the aspect when max-width narrows the box. An element given a
+     height and no width keeps the height it was given: an SVG mark has no
+     intrinsic size, and `auto` collapses it to 0x0. */
+  :where(:is(img,video):is(:not([height]),[width])){height:auto}
   /* A code block scrolls ITSELF rather than widening the document. */
   :where(pre){overflow-x:auto}
 
@@ -173,6 +217,13 @@
            input:not([type=checkbox]):not([type=radio]):not([type=hidden])){
       min-height:var(--tap-target);
     }
+    /* @hanzo/gui writes a control's size INLINE, and only an important
+       declaration outranks an inline one, so these are the floor that holds
+       on a gui control. A switch or checkbox keeps its own box: the button IS
+       the track, and the pseudo-element below widens its target. A radio drawn
+       as a button — a segment of a toggle group — is a control like any other. */
+    :where(button:not([role=switch],[role=checkbox]),[role=button],select,header a[href],footer a[href]){min-height:var(--tap-target) !important}
+    :where(:is(a[href],button,[role=button]):has(> svg:only-child)){min-width:var(--tap-target) !important}
     :where(input,select,textarea){font-size:var(--text-control)}
     /* A checkbox, radio or switch must NOT grow to 44px — the box is 16px
        because that is what a checkbox looks like. What has to reach 44px is the
@@ -207,6 +258,9 @@
      is why it survived review in both files; the defect existed only in their
      order. One rule cannot disagree with itself. */
   :focus-visible{outline:2px solid var(--ring);outline-offset:var(--ring-offset,2px)}
+  /* The ring's colour at REST too, so a control that transitions colours has
+     no currentColor -> ring interpolation to flash when focus lands. */
+  :where(*){outline-color:var(--ring)}
   /* --white-20 is white-on-white in the light theme, so selection reads through
      --selection, which BOTH themes define. */
   ::selection{background:var(--selection);color:var(--text-primary)}

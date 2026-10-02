@@ -15,6 +15,18 @@
   --z-popover:700;     /* popovers, tooltips (also when anchored in modals) */
   --z-toast:800;       /* toasts / notifications — always on top            */
 
+  /* What a PAGE draws over itself, between --z-raised and --z-sticky: a panel
+     under its scrim under a drawer, then a sheet, the dock and a banner. All of
+     it stays under the header and every overlay above. --z-under sits behind
+     the flow, for a backdrop. */
+  --z-under:-10;
+  --z-panel:18;
+  --z-scrim:19;
+  --z-drawer:20;
+  --z-sheet:30;
+  --z-dock:40;
+  --z-banner:50;
+
   /* @hanzo/brand spells the top two rungs --z-tooltip and --z-notification.
      Same rungs, so a component written against either vocabulary stacks
      identically. --z-popover / --z-toast are canonical. */

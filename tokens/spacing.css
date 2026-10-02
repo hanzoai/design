@@ -52,6 +52,10 @@
      Requires `<meta name="viewport" content="…,viewport-fit=cover">` on the
      host page; without it the UA reports 0 and the max() is inert, not wrong. */
   --gutter:max(1rem,var(--safe-left),var(--safe-right));
+  /* The chrome's inset: @hanzogui/shell lays its header and menus on this
+     value, so a page that reads it starts in the column the brand mark does.
+     20px at 390, 41 at 1024, 58 at 1440. */
+  --page-gutter:clamp(20px,4vw,72px);
   --gutter-sm:1.5rem;         /* sm:px-6                       */
   --gutter-lg:2rem;           /* lg:px-8                       */
   --section-y:2.5rem;         /* py-10 on a phone → py-16 at md */

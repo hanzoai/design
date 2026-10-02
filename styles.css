@@ -94,6 +94,7 @@
   --border-control:var(--white-15); /* a control's resting edge */
   --border-focus:var(--white-22); /* that control, focused */
   --border-selected:var(--white-30); /* the thing currently CHOSEN */
+  --edge:var(--white-06); /* fainter than the hairline: an edge between chrome and page */
   --input:var(--border-control); /* shadcn `border-input` — a control */
   --ring:var(--white-40); /* the focus indicator — 3:1 non-text contrast */
   --ring-halo:var(--white-10); /* the soft halo outside the ring */
@@ -171,6 +172,7 @@
   --border-control:rgb(0 0 0 / .15);
   --border-focus:rgb(0 0 0 / .32); /* pushed past .22: black-on-white reads fainter */
   --border-selected:rgb(0 0 0 / .42);
+  --edge:rgb(0 0 0 / .06);
   --input:var(--border-control);
   --ring:rgb(0 0 0 / .5); /* 3.98:1 on #ffffff, 3.67:1 on #f5f5f5 */
   --ring-halo:rgb(0 0 0 / .07);
@@ -381,6 +383,10 @@
      Requires `<meta name="viewport" content="…,viewport-fit=cover">` on the
      host page; without it the UA reports 0 and the max() is inert, not wrong. */
   --gutter:max(1rem,var(--safe-left),var(--safe-right));
+  /* The chrome's inset: @hanzogui/shell lays its header and menus on this
+     value, so a page that reads it starts in the column the brand mark does.
+     20px at 390, 41 at 1024, 58 at 1440. */
+  --page-gutter:clamp(20px,4vw,72px);
   --gutter-sm:1.5rem;         /* sm:px-6                       */
   --gutter-lg:2rem;           /* lg:px-8                       */
   --section-y:2.5rem;         /* py-10 on a phone → py-16 at md */
@@ -623,6 +629,37 @@
   --gradient-chrome-2:linear-gradient(to right,#ffffff,var(--neutral-500));
   /* Section-top protection gradient (hero overlays). */
   --gradient-protect:linear-gradient(to bottom,var(--white-10),transparent);
+
+  /* ——— chrome: the bars the page passes behind ———
+     The header and the dock are one material: a translucent fill over a blur.
+     Raise the alpha and it stops being glass and becomes a shelf. A menu that
+     hangs from the chrome stands on --chrome-panel, which is opaque, because
+     running text read through a menu's words is unreadable. @hanzogui/shell
+     paints its panels with it. */
+  --chrome:rgb(9 9 11 / .72);
+  --chrome-blur:blur(20px) saturate(1.8);
+  --chrome-panel:var(--popover);
+
+  /* ——— the pane: a card on the workspace ground ———
+     The fill is the paper ladder's; the pane adds what the ladder leaves to the
+     call site — a corner, an edge, the lens, and the gutter between panes.
+     --pane-solid is the fill composited once, for a reader who asked for no
+     transparency or a browser that cannot blur. --pane-ground is two lamps
+     under the threshold of reading as a gradient: a blur over a flat colour
+     does nothing a plain alpha would not. */
+  --pane-blur:var(--chrome-blur);
+  --pane-edge:var(--white-08);
+  --pane-round:var(--radius-xl);
+  --pane-fill:var(--sheet-1);
+  --pane-solid:color-mix(in srgb,var(--neutral-800) 50%,var(--background));
+  --pane-floor:var(--background);
+  --pane-gap:var(--space-2);
+  --pane-ground:radial-gradient(80rem 40rem at 12% -10%,rgb(255 255 255 / .035),transparent 60%),radial-gradient(60rem 34rem at 92% 108%,var(--white-03),transparent 60%); /* @kind color */
+}
+
+/* A desk gets room to see the ground between panes. */
+@media (min-width:1024px){
+  :root{--pane-gap:var(--space-3)}
 }
 
 /* Light theme — the same three parts, redistributed.
@@ -659,6 +696,23 @@
   --gradient-chrome:linear-gradient(to right,#0a0a0a,rgb(10 10 10 / .8),rgb(10 10 10 / .6));
   --gradient-chrome-2:linear-gradient(to right,#0a0a0a,var(--neutral-500));
   --gradient-protect:linear-gradient(to bottom,rgb(0 0 0 / .10),transparent);
+  /* Light glass is the same idea from the other side: the fill goes white, the
+     edge and the lamps go dark. */
+  --chrome:rgb(255 255 255 / .72);
+  --pane-edge:rgb(0 0 0 / .08);
+  --pane-fill:var(--chrome);
+  --pane-solid:var(--background);
+  --pane-floor:var(--surface-card);
+  --pane-ground:radial-gradient(80rem 40rem at 12% -10%,rgb(0 0 0 / .03),transparent 60%),radial-gradient(60rem 34rem at 92% 108%,rgb(0 0 0 / .022),transparent 60%);
+}
+
+/* No transparency when asked for none, or where nothing can blur behind it:
+   a translucent fill with no blur is the page read through the words. */
+@media (prefers-reduced-transparency:reduce){
+  :root,:root.light{--pane-fill:var(--pane-solid);--pane-blur:none}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  :root,:root.light{--pane-fill:var(--pane-solid)}
 }
 
 /* ── tokens/motion.css ─────────────────────────────────────── */
@@ -719,6 +773,18 @@
   --z-modal:600;       /* dialogs, sheets, command palette                  */
   --z-popover:700;     /* popovers, tooltips (also when anchored in modals) */
   --z-toast:800;       /* toasts / notifications — always on top            */
+
+  /* What a PAGE draws over itself, between --z-raised and --z-sticky: a panel
+     under its scrim under a drawer, then a sheet, the dock and a banner. All of
+     it stays under the header and every overlay above. --z-under sits behind
+     the flow, for a backdrop. */
+  --z-under:-10;
+  --z-panel:18;
+  --z-scrim:19;
+  --z-drawer:20;
+  --z-sheet:30;
+  --z-dock:40;
+  --z-banner:50;
 
   /* @hanzo/brand spells the top two rungs --z-tooltip and --z-notification.
      Same rungs, so a component written against either vocabulary stacks
@@ -816,6 +882,9 @@
      in this list. */
   --font-feature-settings:normal;
 }
+/* The three voices above, set by the host's `data-brand` on <html>. */
+[data-brand=hanzo]{--font-feature-settings:"ss01"}
+[data-brand=lux]{--font-feature-settings:"ss04"}
 
 /* ── tokens/base.css ─────────────────────────────────────── */
 /* Minimal element defaults so specimen cards and kits inherit the brand without
@@ -843,7 +912,13 @@
   *{box-sizing:border-box;border-color:var(--border)}
   html{
     -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
     text-rendering:optimizeLegibility;
+    /* The page never scrolls sideways. On the root box as well as <body>,
+       because the scrollport is the documentElement; `clip` rather than
+       `hidden`, so neither becomes a scroll container and `sticky` still
+       holds. */
+    overflow-x:clip;
     scroll-behavior:smooth;
     /* iOS inflates text when a phone is rotated to landscape unless this is
        pinned. It is the single most common reason a mobile layout that was
@@ -854,14 +929,24 @@
        has one sets --header / --dock; one that has none scrolls to the edge. */
     scroll-padding-block:var(--header,0px) var(--dock,0px);
   }
+  /* A slide settles where it begins: a page whose sections state
+     `scroll-snap-align` is the scroller's half here. `proximity`, never
+     `mandatory`, so a long section never holds a reader; a page with no snap
+     points is untouched. */
+  @media (min-width:1024px) and (prefers-reduced-motion:no-preference){
+    :where(html){scroll-snap-type:y proximity}
+  }
   /* Each font-family carries the stack as a literal fallback. --font-sans lives in
      tokens/fonts.css, which a surface may legitimately import separately; without
      the fallback an unresolved var() makes font-family invalid and the UA drops to
      its SERIF default — the whole console silently rendered in Times. */
-  body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings);overflow-wrap:break-word}
+  /* The insets keep content out of the notch and the home indicator on a page
+     drawn under them (viewport-fit=cover); env() is 0 on a flat screen. The
+     top one is the header's to pay. */
+  body{margin:0;padding:0 var(--safe-right,0px) var(--safe-bottom,0px) var(--safe-left,0px);overflow-x:clip;background:var(--background);color:var(--foreground);font-family:var(--font-sans,ui-sans-serif,system-ui,sans-serif);font-size:var(--text-base);line-height:var(--leading-base);font-feature-settings:var(--font-feature-settings);overflow-wrap:break-word}
   h1,h2,h3,h4{margin:0;font-family:var(--font-display,var(--font-sans,ui-sans-serif,system-ui,sans-serif));letter-spacing:var(--tracking-tight);color:var(--text-primary)}
   p{margin:0;text-wrap:pretty}
-  code,pre,kbd{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
+  code,pre,kbd,samp{font-family:var(--font-mono,ui-monospace,SFMono-Regular,monospace)}
   /* No `transition` here: the shared interactive rule below states one, and an
      `a` selector (0,0,1) would outrank that :where() (0,0,0) and replace the
      whole shorthand — anchors would transition colour and nothing else. */
@@ -873,7 +958,9 @@
      is a component states its own hover. The old rule also re-set `color` to the
      value `a` already has — a no-op that only served to outrank a component's own
      hover colour. */
-  :is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover{text-decoration:underline}
+  /* A list or a cell inside chrome is not running text: nav, aside, header and
+     the shell's slots carry links that never underline. */
+  :is(p,li,blockquote,dd,dt,td,th,figcaption) a:hover:not(:is(nav,aside,header,[role=navigation],[data-hanzo-shell],[data-slot=rail],[data-slot=bar]) a){text-decoration:underline}
 
   /* ——— the smooth ———
      Every interactive element in the reference transitions its colour, its fill
@@ -973,12 +1060,38 @@
   :where(input,textarea)::placeholder{color:var(--text-disabled)}
   :where(input,select,textarea,button):disabled{opacity:.5;cursor:not-allowed}
   :where(button,[role=button],summary,label,select){cursor:pointer}
+  /* A bare <button> loses the UA's outset bevel and grey fill. A button that
+     wants an edge or a ground states one, and any rule at all outranks this. */
+  :where(button){border:0;background:none}
+
+  /* ——— the pointer floor ———
+     WCAG 2.5.8 AA's 24px, for every pointer; the thumb's 44px is below, under
+     pointer:coarse. A min-height cannot size an inline box, so a header or
+     footer link is drawn as a box first. An icon-only control has no text to
+     widen it, so it is a centred box too.
+
+     `:only-child` counts ELEMENTS: `<a>Docs <svg/></a>` matches as well, and a
+     label+icon control states its own `justify-content`. */
+  :where(button,[role=button],header a[href],footer a[href]){min-height:24px}
+  :where(header a[href],footer a[href]){display:inline-flex;align-items:center}
+  :where(:is(a[href],button,[role=button]):has(> svg:only-child)){display:inline-flex;align-items:center;justify-content:center}
+
+  /* MONO KEEPS ITS CELLS. Zen Mono fuses `--` into one glyph, and a brand's
+     --font-feature-settings rides down into it from <body>, so a command meant
+     to be retyped draws one column short. Wherever the mono face is asked for —
+     these elements, @hanzo/ui's mono cell, or a style naming the token — every
+     character keeps its cell. After the controls' `font:inherit`, which would
+     otherwise hand a mono button its parent's ligatures back. */
+  :where(code,pre,kbd,samp,.hz-mono,[style*='--font-mono']){font-variant-ligatures:none;font-feature-settings:normal}
 
   /* ——— media ———
      An image, a video or an embed at its intrinsic width is the usual cause of a
      390px page that scrolls sideways. */
   :where(img,svg,video,canvas,iframe,picture,object){max-width:100%}
-  :where(img,video){height:auto}
+  /* `auto` keeps the aspect when max-width narrows the box. An element given a
+     height and no width keeps the height it was given: an SVG mark has no
+     intrinsic size, and `auto` collapses it to 0x0. */
+  :where(:is(img,video):is(:not([height]),[width])){height:auto}
   /* A code block scrolls ITSELF rather than widening the document. */
   :where(pre){overflow-x:auto}
 
@@ -993,6 +1106,13 @@
            input:not([type=checkbox]):not([type=radio]):not([type=hidden])){
       min-height:var(--tap-target);
     }
+    /* @hanzo/gui writes a control's size INLINE, and only an important
+       declaration outranks an inline one, so these are the floor that holds
+       on a gui control. A switch or checkbox keeps its own box: the button IS
+       the track, and the pseudo-element below widens its target. A radio drawn
+       as a button — a segment of a toggle group — is a control like any other. */
+    :where(button:not([role=switch],[role=checkbox]),[role=button],select,header a[href],footer a[href]){min-height:var(--tap-target) !important}
+    :where(:is(a[href],button,[role=button]):has(> svg:only-child)){min-width:var(--tap-target) !important}
     :where(input,select,textarea){font-size:var(--text-control)}
     /* A checkbox, radio or switch must NOT grow to 44px — the box is 16px
        because that is what a checkbox looks like. What has to reach 44px is the
@@ -1027,6 +1147,9 @@
      is why it survived review in both files; the defect existed only in their
      order. One rule cannot disagree with itself. */
   :focus-visible{outline:2px solid var(--ring);outline-offset:var(--ring-offset,2px)}
+  /* The ring's colour at REST too, so a control that transitions colours has
+     no currentColor -> ring interpolation to flash when focus lands. */
+  :where(*){outline-color:var(--ring)}
   /* --white-20 is white-on-white in the light theme, so selection reads through
      --selection, which BOTH themes define. */
   ::selection{background:var(--selection);color:var(--text-primary)}

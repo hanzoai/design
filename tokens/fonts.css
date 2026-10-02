@@ -86,3 +86,6 @@
      in this list. */
   --font-feature-settings:normal;
 }
+/* The three voices above, set by the host's `data-brand` on <html>. */
+[data-brand=hanzo]{--font-feature-settings:"ss01"}
+[data-brand=lux]{--font-feature-settings:"ss04"}

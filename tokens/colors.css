@@ -79,6 +79,7 @@
   --border-control:var(--white-15); /* a control's resting edge */
   --border-focus:var(--white-22); /* that control, focused */
   --border-selected:var(--white-30); /* the thing currently CHOSEN */
+  --edge:var(--white-06); /* fainter than the hairline: an edge between chrome and page */
   --input:var(--border-control); /* shadcn `border-input` — a control */
   --ring:var(--white-40); /* the focus indicator — 3:1 non-text contrast */
   --ring-halo:var(--white-10); /* the soft halo outside the ring */
@@ -156,6 +157,7 @@
   --border-control:rgb(0 0 0 / .15);
   --border-focus:rgb(0 0 0 / .32); /* pushed past .22: black-on-white reads fainter */
   --border-selected:rgb(0 0 0 / .42);
+  --edge:rgb(0 0 0 / .06);
   --input:var(--border-control);
   --ring:rgb(0 0 0 / .5); /* 3.98:1 on #ffffff, 3.67:1 on #f5f5f5 */
   --ring-halo:rgb(0 0 0 / .07);

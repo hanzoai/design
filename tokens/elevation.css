@@ -113,6 +113,37 @@
   --gradient-chrome-2:linear-gradient(to right,#ffffff,var(--neutral-500));
   /* Section-top protection gradient (hero overlays). */
   --gradient-protect:linear-gradient(to bottom,var(--white-10),transparent);
+
+  /* ——— chrome: the bars the page passes behind ———
+     The header and the dock are one material: a translucent fill over a blur.
+     Raise the alpha and it stops being glass and becomes a shelf. A menu that
+     hangs from the chrome stands on --chrome-panel, which is opaque, because
+     running text read through a menu's words is unreadable. @hanzogui/shell
+     paints its panels with it. */
+  --chrome:rgb(9 9 11 / .72);
+  --chrome-blur:blur(20px) saturate(1.8);
+  --chrome-panel:var(--popover);
+
+  /* ——— the pane: a card on the workspace ground ———
+     The fill is the paper ladder's; the pane adds what the ladder leaves to the
+     call site — a corner, an edge, the lens, and the gutter between panes.
+     --pane-solid is the fill composited once, for a reader who asked for no
+     transparency or a browser that cannot blur. --pane-ground is two lamps
+     under the threshold of reading as a gradient: a blur over a flat colour
+     does nothing a plain alpha would not. */
+  --pane-blur:var(--chrome-blur);
+  --pane-edge:var(--white-08);
+  --pane-round:var(--radius-xl);
+  --pane-fill:var(--sheet-1);
+  --pane-solid:color-mix(in srgb,var(--neutral-800) 50%,var(--background));
+  --pane-floor:var(--background);
+  --pane-gap:var(--space-2);
+  --pane-ground:radial-gradient(80rem 40rem at 12% -10%,rgb(255 255 255 / .035),transparent 60%),radial-gradient(60rem 34rem at 92% 108%,var(--white-03),transparent 60%); /* @kind color */
+}
+
+/* A desk gets room to see the ground between panes. */
+@media (min-width:1024px){
+  :root{--pane-gap:var(--space-3)}
 }
 
 /* Light theme — the same three parts, redistributed.
@@ -149,4 +180,21 @@
   --gradient-chrome:linear-gradient(to right,#0a0a0a,rgb(10 10 10 / .8),rgb(10 10 10 / .6));
   --gradient-chrome-2:linear-gradient(to right,#0a0a0a,var(--neutral-500));
   --gradient-protect:linear-gradient(to bottom,rgb(0 0 0 / .10),transparent);
+  /* Light glass is the same idea from the other side: the fill goes white, the
+     edge and the lamps go dark. */
+  --chrome:rgb(255 255 255 / .72);
+  --pane-edge:rgb(0 0 0 / .08);
+  --pane-fill:var(--chrome);
+  --pane-solid:var(--background);
+  --pane-floor:var(--surface-card);
+  --pane-ground:radial-gradient(80rem 40rem at 12% -10%,rgb(0 0 0 / .03),transparent 60%),radial-gradient(60rem 34rem at 92% 108%,rgb(0 0 0 / .022),transparent 60%);
+}
+
+/* No transparency when asked for none, or where nothing can blur behind it:
+   a translucent fill with no blur is the page read through the words. */
+@media (prefers-reduced-transparency:reduce){
+  :root,:root.light{--pane-fill:var(--pane-solid);--pane-blur:none}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  :root,:root.light{--pane-fill:var(--pane-solid)}
 }

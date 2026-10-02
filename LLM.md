@@ -263,6 +263,30 @@ shipping. It is still a ratchet: the allowance moves only by hand, and the line
 says exactly what to move it to. A rule with no entry is allowed ZERO, so a new
 rule is live everywhere the day it ships and nobody has to opt in.
 
+## What a surface no longer writes
+A surface mounts base.css and roles.css and states no CSS of its own. What used
+to be restated per site now lives here:
+- **base.css**: no sideways scroll (`overflow-x:clip` on html and body), the
+  safe-area insets on body, mono cells (no ligatures, no brand features on
+  code/pre/kbd/samp/`.hz-mono`), the bare-button reset, the 24px pointer floor
+  and the 44px thumb floor (`!important`, because gui sizes inline; a switch or
+  checkbox keeps its box), icon-only controls as centred boxes, underline on
+  hover only in running text and never inside nav/aside/header or the shell's
+  slots, the ring's colour at rest, `scroll-snap-type: y proximity` from
+  1024px, and an `<img height>` with no width keeps its height.
+- **Brand voice**: `data-brand="hanzo|lux"` on `<html>` sets
+  `--font-feature-settings` (fonts.css). Zoo is the default.
+- **Tokens**: `--page-gutter` (the shell's inset), `--edge`, the chrome
+  material (`--chrome`, `--chrome-blur`, `--chrome-panel`), the workspace pane
+  (`--pane-*`, with light, reduced-transparency and no-blur values) and the
+  page's own z rungs (`--z-under` … `--z-banner`, between `--z-raised` and
+  `--z-sticky`). `--header` and `--dock` stay 0 until a surface measures its bars.
+- **roles.css**: `.display` (book weight, one ink — no gradient clips or dim
+  second lines), `.title`, `.eyebrow`, `.lede` and their rhythm; `.action`,
+  `.pill`, `.more` and `.leaf` in both themes; `.claim`, `.quiet`, `.chrome`,
+  `.lattice` (ruled in `--foreground`), `.run`, and ONE `.prose` — a document by
+  default, `.prose[data-compact]` for a chat message.
+
 ## Notes
 - `--ring` sits at 3.67:1 (dark) / 3.85:1 (light) against its worst-case
   neighbour, `--secondary`. It is the only gated pair in the system.

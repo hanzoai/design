@@ -190,10 +190,11 @@
   /* MONO KEEPS ITS CELLS. Zen Mono fuses `--` into one glyph, and a brand's
      --font-feature-settings rides down into it from <body>, so a command meant
      to be retyped draws one column short. Wherever the mono face is asked for —
-     these elements, @hanzo/ui's mono cell, or a style naming the token — every
-     character keeps its cell. After the controls' `font:inherit`, which would
-     otherwise hand a mono button its parent's ligatures back. */
-  :where(code,pre,kbd,samp,.hz-mono,[style*='--font-mono']){font-variant-ligatures:none;font-feature-settings:normal}
+     these elements, a gui Text on the `$mono` face (gui names that face's scope
+     `font_mono`), or a style naming the token — every character keeps its cell.
+     After the controls' `font:inherit`, which would otherwise hand a mono
+     button its parent's ligatures back. */
+  :where(code,pre,kbd,samp,.font_mono,[style*='--font-mono']){font-variant-ligatures:none;font-feature-settings:normal}
 
   /* ——— media ———
      An image, a video or an embed at its intrinsic width is the usual cause of a

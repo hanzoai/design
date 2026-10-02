@@ -153,6 +153,32 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   halos.forEach(({ sel }) => fail(`\`${sel}\` adds a box-shadow on focus — a second indicator beside the ring`))
 }
 
+// ── 1e. one scrollbar treatment per engine ───────────────────────────────
+// Chromium 121+ ignores an element's ::-webkit-scrollbar* pseudos once it has a
+// standard `scrollbar-color` or `scrollbar-width`, and `scrollbar-color`
+// inherits. Stated on html, it gave every scroller the native bar, which on
+// Linux/GTK draws stepper arrows. So in the published sheets either property
+// lives only inside `@supports not selector(::-webkit-scrollbar)`, except
+// `scrollbar-width: none`, which hides the bar in every engine.
+{
+  const GATE = '@supports not selector(::-webkit-scrollbar)'
+  const ungate = (css) => {
+    const at = css.indexOf(GATE)
+    if (at === -1) return css
+    let i = css.indexOf('{', at) + 1
+    for (let depth = 1; depth; i++) depth += css[i] === '{' ? 1 : css[i] === '}' ? -1 : 0
+    return ungate(css.slice(0, at) + css.slice(i))
+  }
+  const sheets = [join(tokensDir, 'base.css'), join(root, 'roles.css')]
+  const stray = sheets.flatMap((p) =>
+    [...ungate(strip(read(p))).matchAll(/scrollbar-(color|width)\s*:\s*([^;}]+)/g)]
+      .filter(([, prop, v]) => !(prop === 'width' && v.trim() === 'none'))
+      .map(([decl]) => `${p.slice(root.length + 1)}: \`${decl.trim()}\``))
+  stray.length
+    ? stray.forEach((s) => fail(`${s} outside \`${GATE}\` — Chromium then drops the ::-webkit-scrollbar pseudos and Linux draws stepper arrows`))
+    : pass('standard scrollbar properties reach only engines without ::-webkit-scrollbar')
+}
+
 // ── 2. every var() used inside the token layer must resolve ──────────────
 {
   const declared = new Set()

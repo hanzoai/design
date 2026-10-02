@@ -1164,32 +1164,33 @@
   ::selection{background:var(--selection);color:var(--text-primary)}
 
   /* ——— the scrollbar ———
-     The single largest piece of UNSTYLED chrome left on a dark surface: a
-     default 15px light-grey scrollbar down the side of a #0a0a0a panel is the
-     one element on the page that did not get the memo, and it is visible on
-     every scrolling surface in the product. 6px, no track, thumb on the same
-     hairline ladder as everything else. Both syntaxes ship because they are
-     disjoint — `scrollbar-*` is Firefox and the `::-webkit-*` pseudos are
-     Chromium/Safari; neither engine reads the other.
+     6px, no track, no stepper buttons, the thumb on the same hairline ladder as
+     everything else. ONE treatment per engine. Chromium 121+ reads the standard
+     `scrollbar-color`/`scrollbar-width` as well as the `::-webkit-*` pseudos,
+     and an element with either standard property set ignores its pseudos —
+     `scrollbar-color` inherits, so stated on html it gives every scroller the
+     native bar, which on Linux/GTK draws a boxed arrow at each end. So the
+     standard pair goes only to an engine without the pseudos (Firefox), and the
+     pseudos serve the rest. Check 1e holds that.
      The thumb is a --white-* rung, so it does not invert; the `.light`
      restatements sit here rather than in colors.css because a scrollbar is an
      element default and this file is where element defaults live. Everything
      stays INSIDE the layer — an unlayered rule here would outrank an app's own
      utilities, which is the defect check 1c exists to catch. */
-  :where(html){scrollbar-color:var(--white-15) transparent;scrollbar-width:thin}
-  .light{scrollbar-color:rgb(0 0 0 / .18) transparent}
+  @supports not selector(::-webkit-scrollbar){
+    :where(html){scrollbar-color:var(--white-15) transparent;scrollbar-width:thin}
+    .light{scrollbar-color:rgb(0 0 0 / .18) transparent}
+  }
   :where(*)::-webkit-scrollbar{width:6px;height:6px}
   :where(*)::-webkit-scrollbar-track{background:transparent}
   :where(*)::-webkit-scrollbar-thumb{background:var(--white-15);border-radius:var(--radius-full)}
   :where(*)::-webkit-scrollbar-thumb:hover{background:var(--white-30)}
   :where(*)::-webkit-scrollbar-corner{background:transparent}
-  /* The stepper arrows, and they are a LINUX defect specifically. Chromium on
-     macOS draws no buttons, so styling the track and thumb looks finished there
-     and ships a classic GTK scrollbar — a boxed arrow at each end of every
-     scroller, on both axes — to everyone on Ubuntu. Styling the other pseudos
-     does not suppress them; only this does. Zero width AND height because the
-     horizontal and vertical bars each read one of them. */
+  /* The steppers. Styling the other pseudos does not remove them; only this
+     does. Zero width AND height because each axis reads one of them. */
   :where(*)::-webkit-scrollbar-button{display:none;width:0;height:0}
-  .light :where(*)::-webkit-scrollbar-thumb{background:rgb(0 0 0 / .18)}
-  .light :where(*)::-webkit-scrollbar-thumb:hover{background:rgb(0 0 0 / .32)}
+  /* `.light` itself as well as its subtree: with the theme class on <html>,
+     html's own pseudos draw the page's scrollbar. */
+  .light::-webkit-scrollbar-thumb,.light :where(*)::-webkit-scrollbar-thumb{background:rgb(0 0 0 / .18)}
+  .light::-webkit-scrollbar-thumb:hover,.light :where(*)::-webkit-scrollbar-thumb:hover{background:rgb(0 0 0 / .32)}
 }

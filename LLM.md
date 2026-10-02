@@ -315,10 +315,12 @@ to be restated per site now lives here:
   one flat field with hairlines ruled across it. `--surface-overlay` was
   `rgb(10 10 10 / .95)`: the page, at 95% of the page. A floating panel that is
   the same colour as the page is not floating.
-- `--destructive` is `--state-error`, not a grey. "Delete everything" and "you
-  cannot click this" must not be the same colour, and DESIGN.md §2.4 already
-  lists `#ef4444` as permitted for exactly this meaning — the invalid-field
-  state was already using it while the button that does the destroying was not.
+- `--destructive` is red, not a grey: "Delete everything" and "you cannot click
+  this" must not be the same colour. It is a FILL under
+  `--destructive-foreground`, so it is red-600 `#dc2626` (4.6:1 under `#fafafa`,
+  4.8:1 under white), hover red-700 `#b91c1c`; `--state-error` `#ef4444` stays
+  the error hue, and white on it is 3.8:1. `check-tokens` holds every fill and
+  its label at 4.5:1 in both themes.
 - Every interactive state must be VISIBLE. `--secondary-hover` and
   `--primary-hover` exist because the first resolved to its own resting value
   and the second dropped 16%, which reads as the button going disabled under

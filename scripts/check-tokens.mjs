@@ -212,6 +212,27 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
   // affordance — --border, --border-strong, --border-control, --border-focus,
   // --border-selected — is free to be as quiet as it looks.
   const GATED = { ring: 3 }
+  // A FILL and the label set on it owe text's 4.5:1 (WCAG 1.4.3), at rest and
+  // under the cursor. --destructive was --state-error, #ef4444, and white on it
+  // is 3.8:1 — and @hanzo/ui's destructive Button drew gui's own red at 3.9:1,
+  // so every Delete and Leave call shipped unreadable by the rule it is held to.
+  const LABELS = [
+    ['primary-foreground', 'primary'],
+    ['primary-foreground', 'primary-hover'],
+    ['secondary-foreground', 'secondary'],
+    ['accent-foreground', 'accent'],
+    ['destructive-foreground', 'destructive'],
+    ['destructive-foreground', 'destructive-hover'],
+  ]
+  for (const [theme, scope] of Object.entries(themes))
+    for (const [fg, bg] of LABELS) {
+      const r = ratio(scope[fg], scope[bg], scope)
+      if (r === null) fail(`--${fg} on --${bg} (${theme}) could not be measured`)
+      else r < 4.5
+        ? fail(`--${fg} on --${bg} (${theme}) is ${r.toFixed(2)}:1 — a label needs 4.5:1`)
+        : pass(`--${fg} on --${bg} (${theme}) ${r.toFixed(2)}:1`)
+    }
+
   for (const [theme, scope] of Object.entries(themes)) {
     for (const [tok, min] of Object.entries(GATED)) {
       let worst = Infinity, where = ''

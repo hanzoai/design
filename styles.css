@@ -84,8 +84,8 @@
   --muted-foreground:#a3a3a3;
   --accent:#262626;
   --accent-foreground:#fafafa;
-  --destructive:var(--state-error);
-  --destructive-hover:#dc2626; /* red-600 — deepens under the cursor */
+  --destructive:#dc2626; /* red-600 — a FILL under its foreground, 4.6:1; the error hue is --state-error */
+  --destructive-hover:#b91c1c; /* red-700 — deepens under the cursor, 6.2:1 */
   --destructive-foreground:#fafafa;
 
   /* ——— boundaries — ONE ladder, cut from alpha, graded by duty ——— */
@@ -162,8 +162,8 @@
   --muted-foreground:#525252;
   --accent:#e4e4e4;
   --accent-foreground:#0a0a0a;
-  --destructive:var(--state-error);
-  --destructive-hover:#dc2626;
+  --destructive:#dc2626;
+  --destructive-hover:#b91c1c;
   --destructive-foreground:#ffffff;
 
   /* ——— boundaries — restated as black-alpha ——— */

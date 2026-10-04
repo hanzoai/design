@@ -355,7 +355,7 @@ const pass = (msg) => console.log(`  ok    ${msg}`)
 }
 
 // ── 6. the TS table is arithmetic, not CSS ───────────────────────────────
-// `--text-xs` is `calc(0.6875rem * var(--type-scale, 1))` in the sheet, which is
+// `--text-xs` is `calc(0.75rem * var(--type-scale, 1))` in the sheet, which is
 // how one property retunes the whole ramp. Emitting that string into the
 // programmatic table too shipped a value no JavaScript can use: a consumer
 // computing with it gets NaN, silently, and a consumer writing it into an inline

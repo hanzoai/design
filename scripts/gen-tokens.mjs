@@ -93,7 +93,7 @@ function parse(css) {
 /**
  * A knob is CSS's, so the TS table publishes the VALUE and leaves the knob behind.
  *
- * `--text-xs` and `--space-1` are authored as `calc(0.6875rem * var(--type-scale, 1))`
+ * `--text-xs` is authored as `calc(0.75rem * var(--type-scale, 1))` and `--space-1` likewise on `--density`,
  * so one property retunes the whole ramp at runtime. That is right in a stylesheet
  * and unusable in JavaScript twice over: nothing in JS can resolve a `var()`, so a
  * consumer computing with the value gets NaN, and a consumer writing it into an

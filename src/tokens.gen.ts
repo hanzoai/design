@@ -109,9 +109,9 @@ export const colors = {
 export const typography = {
   'type-scale': '1',
   'type-ratio': '1',
-  'text-floor': '0.625rem',
+  'text-floor': '0.75rem',
   'text-ceiling': '30vw',
-  'text-xs': '0.6875rem',
+  'text-xs': '0.75rem',
   'leading-xs': '1rem',
   'text-sm': '0.8125rem',
   'leading-sm': '1.15rem',
@@ -172,7 +172,7 @@ export const typography = {
   'type-body': '400 var(--text-sm)/var(--leading-sm) var(--font-sans)',
   'type-caption': '400 var(--text-xs)/var(--leading-xs) var(--font-sans)',
   'type-code': '400 var(--text-sm)/var(--leading-relaxed) var(--font-mono)',
-  'type-eyebrow': '600 0.625rem/1 var(--font-sans)',
+  'type-eyebrow': '600 0.75rem/1 var(--font-sans)',
 } as const
 
 /** spacing tokens (from tokens/spacing.css). Values are raw CSS. */
@@ -452,9 +452,9 @@ export const cssVars = {
   '--chrome-dot-green': 'rgb(34 197 94 / .6)',
   '--type-scale': '1',
   '--type-ratio': '1',
-  '--text-floor': '0.625rem',
+  '--text-floor': '0.75rem',
   '--text-ceiling': '30vw',
-  '--text-xs': '0.6875rem',
+  '--text-xs': '0.75rem',
   '--leading-xs': '1rem',
   '--text-sm': '0.8125rem',
   '--leading-sm': '1.15rem',
@@ -515,7 +515,7 @@ export const cssVars = {
   '--type-body': '400 var(--text-sm)/var(--leading-sm) var(--font-sans)',
   '--type-caption': '400 var(--text-xs)/var(--leading-xs) var(--font-sans)',
   '--type-code': '400 var(--text-sm)/var(--leading-relaxed) var(--font-mono)',
-  '--type-eyebrow': '600 0.625rem/1 var(--font-sans)',
+  '--type-eyebrow': '600 0.75rem/1 var(--font-sans)',
   '--density': '1',
   '--space-0': '0',
   '--space-1': '0.25rem',

@@ -65,8 +65,9 @@ check("type is ONE knob, not a restated ramp", () => {
 check("type is CLAMPED — a preference cannot make the UI illegible", () => {
   eq(vars({ type: 0.1 })["--type-scale"], String(TYPE_MIN), "min");
   eq(vars({ type: 99 })["--type-scale"], String(TYPE_MAX), "max");
-  // the smallest rung must stay readable at the floor: 11px * TYPE_MIN
-  ok(11 * TYPE_MIN >= 9, "xs falls below 9px at the floor");
+  // the smallest rung is 12px and the sheet clamps every rung at 12px, so the
+  // multiplier's floor cannot take it under that
+  ok(12 * TYPE_MIN >= 10, "xs falls below 10px at the multiplier's floor");
 });
 
 check("density moves spacing only, and never touches type", () => {

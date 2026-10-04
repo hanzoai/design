@@ -202,7 +202,7 @@
 /* ── tokens/typography.css ─────────────────────────────────────── */
 /* TIGHT app-first type scale — the compact developer-app register (linear.app /
    vercel.com / the Codex desktop look), the Hanzo default across chat / app /
-   desktop. Base is 14px, nav 13px, labels 11px; display sizes tightened. Kept in
+   desktop. Base is 14px, nav 13px, labels 12px; display sizes tightened. Kept in
    lockstep with @hanzo/brand (styles/variables.css --font-size-* + typography.ts)
    — the two are the SAME scale, mirrored. A surface/tenant overrides any --text-*
    on :root to retune density on demand. */
@@ -225,7 +225,7 @@
      algebra rather than by care — the deltas below are just `authored - 0.875`.
      The alternative, deriving each rung as base * ratio^n, would restate the
      ramp in a second place, and this scale is not geometric anyway: the app
-     register (11/13/14/15/17) is near-linear on purpose and a ratio applied to
+     register (12/13/14/15/17) is near-linear on purpose and a ratio applied to
      it would erase the 1px steps the compact register is FOR. That drift is not
      hypothetical here — see src/preference.ts, where a recomputed copy of this
      ramp shipped `lg: 16px` against this file's 15px.
@@ -238,7 +238,7 @@
      cannot fix either end — 0.85 x 0.9 is inside both bounds and lands at 8.5px
      — so the RESULT is what carries the bound:
 
-       --text-floor    10px    below this a label is not small, it is unreadable
+       --text-floor    12px    below this a label is not small, it is unreadable
        --text-ceiling  30vw    above this a heading is not type, it is a texture
 
      The ceiling is in the VIEWPORT's units because that is what "too big" means:
@@ -248,9 +248,9 @@
      `vars()` emits the same clamp for a modular scale, so a regenerated rung and
      an authored one are bounded identically — the rule does not depend on which
      produced the value. */
-  --text-floor:0.625rem;
+  --text-floor:0.75rem;
   --text-ceiling:30vw;
-  --text-xs:clamp(var(--text-floor), calc((0.875rem - 0.1875rem * var(--type-ratio, 1)) * var(--type-scale, 1)), var(--text-ceiling));   --leading-xs:calc((1.35rem - 0.35rem * var(--type-ratio, 1)) * var(--type-scale, 1));    /* 11px — eyebrows / section labels */
+  --text-xs:clamp(var(--text-floor), calc((0.875rem - 0.125rem * var(--type-ratio, 1)) * var(--type-scale, 1)), var(--text-ceiling));    --leading-xs:calc((1.35rem - 0.35rem * var(--type-ratio, 1)) * var(--type-scale, 1));    /* 12px — eyebrows / section labels; the smallest type anywhere */
   --text-sm:clamp(var(--text-floor), calc((0.875rem - 0.0625rem * var(--type-ratio, 1)) * var(--type-scale, 1)), var(--text-ceiling));  --leading-sm:calc((1.35rem - 0.2rem * var(--type-ratio, 1)) * var(--type-scale, 1));     /* 13px — nav labels, dense body */
   --text-base:clamp(var(--text-floor), calc(0.875rem * var(--type-scale, 1)), var(--text-ceiling));                                                     --leading-base:calc(1.35rem * var(--type-scale, 1));                                    /* 14px — the ANCHOR: the rung the ratio pivots on, so it carries no ratio term */
   --text-lg:clamp(var(--text-floor), calc((0.875rem + 0.0625rem * var(--type-ratio, 1)) * var(--type-scale, 1)), var(--text-ceiling));                  --leading-lg:calc((1.35rem + 0.05rem * var(--type-ratio, 1)) * var(--type-scale, 1));   /* 15px */
@@ -319,7 +319,7 @@
   --type-body:400 var(--text-sm)/var(--leading-sm) var(--font-sans);
   --type-caption:400 var(--text-xs)/var(--leading-xs) var(--font-sans);
   --type-code:400 var(--text-sm)/var(--leading-relaxed) var(--font-mono);
-  --type-eyebrow:600 0.625rem/1 var(--font-sans);
+  --type-eyebrow:600 0.75rem/1 var(--font-sans);
 }
 
 /* On touch, a control goes to 16px. Below that iOS Safari zooms the viewport on

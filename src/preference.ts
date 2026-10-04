@@ -84,9 +84,10 @@ export interface Preference {
 /**
  * The type multiplier is CLAMPED, and the bounds are not arbitrary.
  *
- * Below 0.85 the smallest rung (--text-xs, 11px) drops under 9.4px, which stops
- * being small and starts being unreadable — and a preference that lets someone
- * render their own tools illegible is a trap, not a choice. Above 1.4 the
+ * Below 0.85 the ramp compresses past the point a person can read it — and a
+ * preference that lets someone render their own tools illegible is a trap, not
+ * a choice. The sheet's --text-floor (12px) holds the smallest rung, --text-xs,
+ * at 12px whatever this multiplier says. Above 1.4 the
  * chrome stops fitting its own containers: this app's builder header already
  * overlaps its actions below 1440px at scale 1.
  */

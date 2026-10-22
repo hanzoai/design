@@ -70,6 +70,7 @@ scripts/
   gen-tokens.mjs  # tokens/*.css -> src/tokens.gen.ts (deterministic)
   check-tokens.mjs# the gate: every token resolves, contrast ratios hold
   lint.mjs        # the consumer-code gate; `pnpm test` runs it on the WHOLE package
+  check-lint.mjs  # the flex-prop floor, run in a scratch directory against fixtures
 styles.css        # serves all 10 token files to a consumer, flattened
 ```
 
@@ -282,6 +283,40 @@ publishing that morning. A gate that stops the shipping is worth less than the
 shipping. It is still a ratchet: the allowance moves only by hand, and the line
 says exactly what to move it to. A rule with no entry is allowed ZERO, so a new
 rule is live everywhere the day it ships and nobody has to opt in.
+
+### The floors — `flex-prop`, counted per directory, off until recorded
+
+**`flex-prop`** (rule 13) counts `flex`, `grow`, `shrink`, `flexBasis` and
+`flexWrap` (and `flexGrow`/`flexShrink`) on JSX elements, as attributes or as
+keys of an attribute's object (`$sm={{ flex: 1 }}`), except on a direct child
+of a `<Wrap>`. It is the layout @hanzo/gui 8.4 replaces: a stack sizes its
+children with `tracks="auto 1fr auto"`, and `Wrap` is the one place
+content-sized wrapping lives, where flex still means something on its children.
+It reads the element tree with a small JSX reader in lint.mjs (`flexProps`),
+because "a Wrap's child" is not a fact about a line.
+
+It is a migration, not a defect, so it is a FLOOR rather than a rule:
+
+- **Off until a surface names it.** hanzo.ai alone carries 761; live at zero it
+  would fail every consumer on its next bump of this package.
+- **Per directory**, a file's first two path segments from the CWD — the unit
+  hanzo.ai's tailwind floor counts by, so a regression names where it landed
+  and one directory paying down cannot hide another growing:
+  `{ "flex-prop": { "app/(marketing)": 287, "components/home": 66 } }`.
+- **Turned on by `--record`**, which writes today's counts for every floor into
+  `hanzo-design.allow.json` and passes:
+  `npx hanzo-design-lint --record components app`, then commit the file. From
+  then on a directory over its count fails, under it is reported with the number
+  to lower it to, and a directory the entry does not name is allowed zero.
+- The plan beyond it (owner): codemod the fleet onto `tracks` and `Wrap` with
+  screenshot diffs, then enforce at zero, then flip the stack default to grid in
+  gui 9.
+
+`scripts/check-lint.mjs` runs the real script in a scratch directory against
+fixtures holding every shape the reader has to get right (a type argument, a
+generic arrow, a regex with a quote, a comment before an element, a Wrap's
+child through a fragment and a map, its grandchild) and checks off, record,
+growth, slack and a misspelt key.
 
 ## What a surface no longer writes
 A surface mounts base.css and roles.css and states no CSS of its own. What used

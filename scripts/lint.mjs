@@ -7,10 +7,12 @@
 // z-index wins a fight it should have lost, an ALL-CAPS label is a different
 // brand. None of them throw. So they fail here.
 //
-//   npx hanzo-design-lint <path...>        # default: cwd
+//   npx hanzo-design-lint <path...>            # default: cwd
+//   npx hanzo-design-lint --record <path...>   # write today's per-directory
+//                                              # counts (flex-prop) and pass
 //
 // Exit 1 on any violation. That is the point.
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, relative, extname, sep } from 'node:path'
 
@@ -86,8 +88,155 @@ function styleValue(body, key) {
 }
 
 const findings = []
-const flag = (file, line, rule, detail, fix) =>
-  findings.push({ file, line, rule, detail, fix })
+const flag = (file, line, rule, detail, fix, dir) =>
+  findings.push({ file, line, rule, detail, fix, dir })
+
+// ── JSX, read just far enough to know which element a prop sits on ──────
+// flex-prop (rule 13) has to tell a prop on a Wrap's child from the same prop
+// anywhere else, so it needs the element tree, not a line. This walks the
+// source once: JS (strings, templates, comments and regex literals skipped),
+// a tag's attributes, and an element's children, each the way JSX nests them.
+// It returns every flex prop with the element it sits on and that element's
+// parent; a key inside an attribute's object (`$sm={{ flex: 1 }}`) is the
+// element's prop too.
+const FLEX = new Set(['flex', 'grow', 'shrink', 'flexBasis', 'flexWrap', 'flexGrow', 'flexShrink'])
+const WORD = /[A-Za-z0-9_$]/
+
+function flexProps(src) {
+  const out = []
+  const open = [] // the elements we are inside, '' for a fragment
+  const n = src.length
+  const parent = () => {
+    for (let k = open.length - 1; k >= 0; k--) if (open[k]) return open[k]
+    return ''
+  }
+  const back = (j) => { while (j >= 0 && /\s/.test(src[j])) j--; return j }
+  // A `<` opens a tag where an expression may start, never after a value: that
+  // is what tells `<View` from `a < b` and `Array<T>`. The same test tells a
+  // regex literal from a division. It reads the last significant character
+  // before it, comments excepted, which js() keeps as it goes.
+  const KEYWORD = /^(return|yield|await|case|default|else|do|typeof|in|of)$/
+  const opens = (last, word) =>
+    last === '' || '(,=:?{}[;>&|!+-*%~^'.includes(last) || (WORD.test(last) && KEYWORD.test(word))
+  const quoted = (i) => { const q = src[i]; i++; while (i < n && src[i] !== q) { if (src[i] === '\\') i++; i++ } return i + 1 }
+  const template = (i, owner) => {
+    i++
+    while (i < n && src[i] !== '`') {
+      if (src[i] === '\\') i += 2
+      else if (src[i] === '$' && src[i + 1] === '{') i = js(i + 2, owner)
+      else i++
+    }
+    return i + 1
+  }
+  const regex = (i) => {
+    i++
+    let cls = false
+    while (i < n && src[i] !== '\n') {
+      if (src[i] === '\\') i++
+      else if (src[i] === '[') cls = true
+      else if (src[i] === ']') cls = false
+      else if (src[i] === '/' && !cls) return i + 1
+      i++
+    }
+    return i
+  }
+  const record = (at, name, owner) => out.push({ at, name, owner, parent: parent() })
+
+  // JS from i to the `}` that closes it (or the end of the file); `owner` is
+  // the element whose attribute this expression is, if any.
+  function js(i, owner) {
+    let depth = 0
+    let last = src[back(i - 1)] ?? ''
+    let word = ''
+    while (i < n) {
+      const c = src[i]
+      if (/\s/.test(c)) { i++; continue }
+      if (c === '/' && src[i + 1] === '/') { while (i < n && src[i] !== '\n') i++; continue }
+      if (c === '/' && src[i + 1] === '*') { const e = src.indexOf('*/', i + 2); i = e < 0 ? n : e + 2; continue }
+      if (c === '"' || c === "'") { i = quoted(i); last = c; continue }
+      if (c === '`') { i = template(i, owner); last = c; continue }
+      if (c === '/' && opens(last, word)) { i = regex(i); last = c; continue }
+      if (c === '{') { depth++; i++; last = c; continue }
+      if (c === '}') { if (depth === 0) return i + 1; depth--; i++; last = c; continue }
+      if (c === '<' && (src[i + 1] === '>' || /[A-Za-z]/.test(src[i + 1] ?? '')) && opens(last, word)) {
+        const end = element(i)
+        if (end > i) { i = end; last = '>'; continue }
+      }
+      if (WORD.test(c)) {
+        let e = i
+        while (e < n && WORD.test(src[e])) e++
+        const w = src.slice(i, e)
+        if (owner && FLEX.has(w) && (last === '{' || last === ',')) {
+          let k = e
+          while (k < n && /\s/.test(src[k])) k++
+          if (src[k] === ':') record(i, w, owner)
+        }
+        word = w
+        last = src[e - 1]
+        i = e
+        continue
+      }
+      last = c
+      i++
+    }
+    return i
+  }
+
+  // An element at its `<`: its tag, then its children. Returns where it ends,
+  // or i itself when the `<` turns out to open a type parameter list.
+  function element(i) {
+    let k = i + 1
+    while (k < n && /[\w$.:-]/.test(src[k])) k++
+    const name = src.slice(i + 1, k)
+    let j = k
+    while (j < n && /\s/.test(src[j])) j++
+    if (src[j] === ',' || src.startsWith('extends ', j)) return i // <T,>(…) and <T extends U>
+    for (;;) {
+      while (j < n && /\s/.test(src[j])) j++
+      if (j >= n) return n
+      if (src[j] === '/' && src[j + 1] === '>') return j + 2
+      if (src[j] === '>') break
+      if (src[j] === '{') { j = js(j + 1, name); continue }
+      let e = j
+      while (e < n && /[\w$:.-]/.test(src[e])) e++
+      if (e === j) { j++; continue }
+      const attr = src.slice(j, e)
+      j = e
+      while (j < n && /\s/.test(src[j])) j++
+      if (src[j] !== '=') continue
+      if (FLEX.has(attr)) record(e - attr.length, attr, name)
+      j++
+      while (j < n && /\s/.test(src[j])) j++
+      if (src[j] === '"' || src[j] === "'") j = quoted(j)
+      else if (src[j] === '{') j = js(j + 1, name)
+      else if (src[j] === '<') j = Math.max(element(j), j + 1)
+    }
+    open.push(name)
+    j = children(j + 1)
+    open.pop()
+    return j
+  }
+
+  // An element's children, to the end of its closing tag.
+  function children(i) {
+    while (i < n) {
+      if (src[i] === '<' && src[i + 1] === '/') { const e = src.indexOf('>', i); return e < 0 ? n : e + 1 }
+      if (src[i] === '<') { i = Math.max(element(i), i + 1); continue }
+      if (src[i] === '{') { i = js(i + 1, null); continue }
+      i++
+    }
+    return i
+  }
+
+  js(0, null)
+  return out
+}
+
+/** The directory flex-prop counts a file under: its first two path segments. */
+const dirOf = (path) => {
+  const parts = path.split('/').slice(0, -1)
+  return parts.length ? parts.slice(0, 2).join('/') : '.'
+}
 
 // ── the rules ────────────────────────────────────────────────────────────
 // 1. var() must resolve — against the design tokens or a local declaration.
@@ -275,19 +424,52 @@ function lintFile(abs, root) {
       /\b(?:function|const)\s+(Hanzo?(?:Header|Footer)|(?:Site|App|Global|Main|Top)(?:Header|Nav|Footer|Bar)|(?:Header|Nav|Command|Search)(?:Search|Palette|Trigger|Bar)|OrgSwitcher|OrgHeader|AppLauncher|MegaMenu)\b/g))
       flag(rel, lineOf(src, m.index), 'shell-owned-chrome', m[1],
         'import it from @hanzogui/shell — the chrome is one set of controls, fleet-wide')
+
+  // 13. a stack sizes its children with `tracks` (@hanzo/gui 8.4+), and Wrap is
+  //     the one place content-sized wrapping lives. So `flex`, `grow`,
+  //     `shrink`, `flexBasis` and `flexWrap` (and `flexGrow`/`flexShrink`) are
+  //     the layout the grid replaces, wherever they sit except on a Wrap's
+  //     direct child, where flex still means something. Counted per directory
+  //     and ratcheted (FLOORS, below), and off until a surface records its
+  //     counts: the fleet carries hundreds of these, and a rule live at zero
+  //     would fail every consumer on its next bump of this package.
+  if (FLOORS_ON.has('flex-prop') && /\.(jsx|tsx)$/.test(rel)) {
+    const dir = dirOf(relative(process.cwd(), abs).split(sep).join('/'))
+    for (const p of flexProps(src)) {
+      if (p.parent === 'Wrap' || p.parent.endsWith('.Wrap')) continue
+      flag(rel, lineOf(src, p.at), 'flex-prop', `${p.name} on <${p.owner || '>'}`,
+        'size it on the stack with tracks="…"; content-sized wrapping is a <Wrap>', dir)
+    }
+  }
 }
 
 // ── run ──────────────────────────────────────────────────────────────────
-const targets = process.argv.slice(2).filter((a) => !a.startsWith('-'))
-const roots = targets.length ? targets : [process.cwd()]
-let scanned = 0
-for (const r of roots) for (const f of walk(r)) { scanned++; lintFile(f, r === f ? dirname(r) : r) }
-
 const RULES = [
   'unresolved-token', 'raw-color', 'raw-z-index', 'raw-font-size', 'all-caps',
   'inline-style', 'icon-set', 'wrong-package',
   'local-token-table', 'redeclared-token', 'second-publisher', 'shell-owned-chrome',
 ]
+
+/**
+ * THE FLOORS — rules whose allowance is per DIRECTORY, not one number.
+ *
+ *   { "flex-prop": { "app": 40, "components/home": 12 } }
+ *
+ * A directory is a file's first two path segments from the working directory,
+ * the unit hanzo.ai's tailwind floor counts by: a regression names where it
+ * landed, and one directory paying down cannot hide another growing. Each
+ * directory follows the RATCHET rule below — over its count fails, under it is
+ * reported with the number to lower it to — and a directory the entry does not
+ * name is allowed zero.
+ *
+ * A floor is OFF until the surface names it, unlike every rule above. That is
+ * the difference between a rule against a defect and a migration: nothing on
+ * the fleet is wrong today for writing `flex={1}`, there is just a better way
+ * now. `--record` turns it on, writing today's counts for every floor into the
+ * allow file; from then on the count only falls.
+ */
+const FLOORS = ['flex-prop']
+const record = process.argv.includes('--record')
 
 /**
  * THE RATCHET — `hanzo-design.allow.json`, beside the code being linted.
@@ -323,6 +505,50 @@ const RULES = [
 const RATCHET = 'hanzo-design.allow.json'
 let allow = {}
 try { allow = JSON.parse(readFileSync(join(process.cwd(), RATCHET), 'utf8')) } catch { /* none: everything is zero */ }
+const FLOORS_ON = new Set(FLOORS.filter((r) => record || (allow[r] && typeof allow[r] === 'object')))
+
+const targets = process.argv.slice(2).filter((a) => !a.startsWith('-'))
+const roots = targets.length ? targets : [process.cwd()]
+let scanned = 0
+for (const r of roots) for (const f of walk(r)) { scanned++; lintFile(f, r === f ? dirname(r) : r) }
+
+/** Per-directory counts for one floor rule. */
+const byDir = (rule) => {
+  const out = {}
+  for (const f of findings) if (f.rule === rule) out[f.dir] = (out[f.dir] ?? 0) + 1
+  return Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b)))
+}
+
+if (record) {
+  for (const r of FLOORS) allow[r] = byDir(r)
+  writeFileSync(join(process.cwd(), RATCHET), JSON.stringify(allow, null, 2) + '\n')
+  for (const r of FLOORS) {
+    const total = Object.values(allow[r]).reduce((a, b) => a + b, 0)
+    console.log(`hanzo-design-lint: recorded ${r}, ${total} across ${Object.keys(allow[r]).length} directories, in ${RATCHET}`)
+  }
+  process.exit(0)
+}
+
+let floorsOver = 0
+for (const rule of FLOORS_ON) {
+  const counts = byDir(rule)
+  const owed = allow[rule]
+  const dirs = [...new Set([...Object.keys(counts), ...Object.keys(owed)])].sort()
+  for (const dir of dirs) {
+    const found = counts[dir] ?? 0
+    const allowed = owed[dir] ?? 0
+    if (found > allowed) {
+      floorsOver++
+      const hits = findings.filter((f) => f.rule === rule && f.dir === dir)
+      console.log(`\n${rule}  ${dir}: ${found} found, ${allowed} allowed — a NEW violation. ${hits[0].fix}`)
+      for (const h of hits.slice(0, 20)) console.log(`  ${h.file}:${h.line}  ${h.detail}`)
+      if (hits.length > 20) console.log(`  … ${hits.length - 20} more`)
+    } else if (found < allowed) {
+      console.log(`  ${rule}  ${dir}: ${found} found against ${allowed} allowed — ${allowed - found} fixed. ` +
+        `Lower it to ${found} in ${RATCHET}.`)
+    }
+  }
+}
 
 const count = Object.fromEntries(RULES.map((r) => [r, findings.filter((f) => f.rule === r).length]))
 const over = RULES.filter((r) => count[r] > (allow[r] ?? 0))
@@ -342,10 +568,10 @@ for (const rule of RULES) {
 // they filed an exemption — the same silent failure this whole file exists to
 // end. Keys starting with `_` are prose and are skipped, so the file can explain
 // itself without inventing a second format.
-const unknown = Object.keys(allow).filter((k) => !k.startsWith('_') && !RULES.includes(k))
+const unknown = Object.keys(allow).filter((k) => !k.startsWith('_') && !RULES.includes(k) && !FLOORS.includes(k))
 if (unknown.length) {
   console.log(`\n  ${RATCHET} names ${unknown.length} thing(s) that are not rules: ${unknown.join(', ')}`)
-  console.log(`  the rules are: ${RULES.join(', ')}`)
+  console.log(`  the rules are: ${[...RULES, ...FLOORS].join(', ')}`)
   process.exit(1)
 }
 
@@ -353,12 +579,13 @@ for (const r of under)
   console.log(`  ${r}: ${count[r]} found against ${allow[r] ?? 0} allowed — ${(allow[r] ?? 0) - count[r]} fixed. ` +
     `Lower it to ${count[r]} in ${RATCHET}.`)
 
-if (!over.length) {
-  const owed = RULES.reduce((a, r) => a + (allow[r] ?? 0), 0)
+if (!over.length && !floorsOver) {
+  const owed = RULES.reduce((a, r) => a + (allow[r] ?? 0), 0) +
+    [...FLOORS_ON].reduce((a, r) => a + Object.values(allow[r]).reduce((x, y) => x + y, 0), 0)
   console.log(`hanzo-design-lint: ${scanned} files, clean${owed ? ` (${owed} allowed by ${RATCHET})` : ''}`)
   process.exit(0)
 }
 for (const r of over)
   console.log(`\n  ${r}: ${count[r]} found, ${allow[r] ?? 0} allowed — a NEW violation. Fix it.`)
-console.log(`\n${findings.length} violation(s) across ${scanned} files`)
+console.log(`\n${findings.filter((f) => !FLOORS.includes(f.rule)).length} violation(s) across ${scanned} files`)
 process.exit(1)

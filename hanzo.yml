@@ -2,8 +2,8 @@
 #
 # @hanzo/design is tokens, not a container: nothing here builds an image and
 # nothing rolls a cluster, so this file is a `test:` block and nothing else.
-# Publishing stays in .hanzo/workflows/publish.yml, which fires on a version
-# change and is the only thing allowed to reach npmjs.
+# Publishing is .github/workflows/publish.yml, which fires when main names a
+# version npm does not serve yet and is the only thing allowed to reach npmjs.
 #
 # `pnpm build` IS the gate — it is `gen && test && tsc`, three things in one
 # command:

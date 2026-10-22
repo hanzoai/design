@@ -43,15 +43,20 @@ two that happen to agree.
 
 ## How this ships
 
-    push  ->  git.hanzo.ai/hanzoai/design       (origin)
-          ->  github.com/hanzoai/design         (github)
-    pnpm publish                                 from a checkout; prepublishOnly
-                                                 runs `pnpm build`
+    bump `version` in package.json, merge to main on github.com/hanzoai/design
+      -> .github/workflows/publish.yml on a cluster runner (linux-amd64)
+         version ahead of npm's latest? pnpm build, git diff the generated
+         files, pnpm pack, read NPM_TOKEN from KMS, npm publish the tarball
 
-No workflow publishes this package. `pnpm build` is the gate — it regenerates
-the tokens, runs the suite and emits `dist/`; `dist/` is gitignored, so a
-publish without it ships an empty `.` export. `hanzo.yml` runs the same build
-plus a `git diff` over the generated files on CI.
+Nothing publishes from a laptop. The workflow is hanzoai/i18n's: it asks the
+registry, not the diff, so any other push publishes nothing; the token comes
+from KMS at run time (org secrets `KMS_CLIENT_ID`/`KMS_CLIENT_SECRET`,
+`POST /v1/kms/auth/login`, `GET /v1/kms/secrets/NPM_TOKEN?env=prod`) and is
+masked. `pnpm build` is the gate — it regenerates the tokens, runs the suite
+and emits `dist/`; `dist/` is gitignored, so a publish without it ships an
+empty `.` export, and the pack step refuses a tarball with no `dist/index.js`.
+GitHub Actions is on for this repo for that reason; the same push runs
+`cicd.yml`, the `hanzo.yml` checks.
 
 ## Structure
 ```

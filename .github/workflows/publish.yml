@@ -80,7 +80,8 @@ jobs:
           set -euo pipefail
           pnpm pack --pack-destination "$RUNNER_TEMP"
           tgz=$(ls "$RUNNER_TEMP"/hanzo-design-*.tgz)
-          tar -tzf "$tgz" | grep -q '^package/dist/index.js$'
+          # grep reads the whole list: -q would close the pipe early and fail tar
+          tar -tzf "$tgz" | grep -x 'package/dist/index.js' > /dev/null
           echo "tgz=$tgz" >> "$GITHUB_OUTPUT"
 
       - name: Read the npm token from KMS

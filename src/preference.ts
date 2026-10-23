@@ -1,5 +1,5 @@
 /**
- * A person's own reading of the system: type size, density, accent.
+ * A person's own reading of the system: type size, density, faces, accent.
  *
  * Three knobs, and each is ONE multiplier on a whole axis — never a restated
  * ramp. The ramps live in `tokens/*.css`, authored once, and each rung carries
@@ -36,6 +36,16 @@ export type Density = "compact" | "default" | "comfortable";
  */
 export type Face = "default" | "system" | "serif" | "mono";
 
+/**
+ * The face Arabic is set in — its own axis, because Zen draws no Arabic and the
+ * question is not the same one `Face` answers. A person reading in serif and one
+ * reading in mono both need Arabic letters, and an enum of pairings ("serif with
+ * kufi") would multiply every face by every companion and freeze the pairs.
+ * Named by what the face IS, like `Face`: a geometric Kufi, or a sans drawn on
+ * Naskh's skeleton. The families are the token file's.
+ */
+export type Arabic = "default" | "kufi" | "sans";
+
 /** How wide the page runs before it stops. */
 export type Measure = "narrow" | "default" | "wide";
 
@@ -65,6 +75,8 @@ export interface Preference {
   density?: Density;
   /** Which face the page is set in. */
   font?: Face;
+  /** Which face Arabic is set in. Writes `--font-arabic`. */
+  arabic?: Arabic;
   /** How wide the page runs — the measure, not the window. */
   width?: Measure;
   /**
@@ -178,6 +190,20 @@ const FACE: Partial<Record<Face, string>> = {
   system: "ui-sans-serif, system-ui, -apple-system, sans-serif",
   serif: "var(--font-serif)",
   mono: "var(--font-mono)",
+};
+
+/**
+ * The Arabic companion, by REFERENCE for the reason the faces are. It writes
+ * `--font-arabic`, which `tokens/fonts.css` names FIRST in the sans, mono and
+ * serif stacks; the companion covers the Arabic blocks only, so Latin passes it
+ * over and stays in whichever face `font` chose. One property, every face.
+ *
+ * `system` writes a stack with no slot in it, so under the system face the
+ * platform draws every script, Arabic included — which is what "system" means.
+ */
+const ARABIC: Partial<Record<Arabic, string>> = {
+  kufi: "var(--font-arabic-kufi)",
+  sans: "var(--font-arabic-sans)",
 };
 
 /**
@@ -351,6 +377,9 @@ export function vars(p: Preference): Record<string, string> {
   // resolves a known one.
   const face = p.font ? FACE[p.font] : undefined;
   if (face) out["--font-sans"] = face;
+
+  const arabic = p.arabic ? ARABIC[p.arabic] : undefined;
+  if (arabic) out["--font-arabic"] = arabic;
 
   const measure = p.width ? MEASURE[p.width] : undefined;
   if (measure) {

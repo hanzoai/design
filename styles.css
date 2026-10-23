@@ -802,9 +802,10 @@
 }
 
 /* ── tokens/fonts.css ─────────────────────────────────────── */
-/* Zen — the only family on Hanzo surfaces, sans and mono.
+/* Zen — the family on Hanzo surfaces, sans and mono, and its Arabic companions.
    SELF-HOSTED. The faces ship inside this package (assets/fonts/*.woff2, two
-   variable files, 141 KB total, SIL OFL-1.1 — see assets/fonts/LICENSE-Zen.txt).
+   variable files, 141 KB total, SIL OFL-1.1 — see assets/fonts/LICENSE-Zen.txt),
+   with two Arabic companions beside them (below).
 
    Zen is our own family, under the SIL Open Font License. The licence file
    beside the binaries carries every copyright the OFL requires; nothing else in
@@ -865,11 +866,79 @@
   font-display:block;
 }
 
+/* ARABIC. Zen draws Latin and Cyrillic and no Arabic, so an Arabic page used to
+   fall to whatever face each browser picked. @hanzo/font carries two Arabic
+   companions, variable over Zen's own weight axis and cut to the Arabic blocks,
+   and they are copied here with the Zen faces: Noto Kufi Arabic (the default,
+   geometric like Zen) and Noto Sans Arabic. Both draw every Arabic-script
+   language Hanzo ships. They are not ours and keep their names; their licence is
+   assets/fonts/LICENSE-Arabic.txt.
+
+   THE RANGE IS THE WHOLE TRICK. Each face covers the Arabic blocks only, so a
+   page with no Arabic on it never requests one, and Latin inside an Arabic page
+   is still Zen. The joiners (U+200C-200F) are drawn by the files but kept out of
+   the range: an English page with an emoji ZWJ sequence would otherwise fetch an
+   Arabic face for one invisible character.
+
+   Every stack below names `--font-arabic` FIRST. A family whose range excludes a
+   character is passed over without a download, so Latin falls through to Zen,
+   and the "first available font" a line box and `ch` are measured from is still
+   Zen (its range covers the space; the companion's does not). That is what makes
+   the choice one property: `@hanzo/appearance` writes `--font-arabic`, and sans,
+   mono and serif follow.
+
+   The default is ALSO declared under "Zen" and "Zen Mono", for anything that
+   names a family rather than a token. That only works because its descriptors
+   are Zen's exactly (weight 100 900, normal): faces in one family composite only
+   when everything but the range matches, and a companion declared at another
+   weight wins the weight match for Latin too, refuses every Latin letter, and
+   sends the page to the system sans with no font request to show for it.
+
+   `block` for the reason Zen has it: an Arabic page waits a moment for its face
+   rather than painting the platform's and repainting. */
+@font-face{
+  font-family:"Zen";
+  src:url("./assets/fonts/NotoKufiArabic-Variable.woff2") format("woff2");
+  font-weight:100 900;
+  font-style:normal;
+  font-display:block;
+  unicode-range:U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face{
+  font-family:"Zen Mono";
+  src:url("./assets/fonts/NotoKufiArabic-Variable.woff2") format("woff2");
+  font-weight:100 900;
+  font-style:normal;
+  font-display:block;
+  unicode-range:U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face{
+  font-family:"Noto Kufi Arabic";
+  src:url("./assets/fonts/NotoKufiArabic-Variable.woff2") format("woff2");
+  font-weight:100 900;
+  font-style:normal;
+  font-display:block;
+  unicode-range:U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC;
+}
+@font-face{
+  font-family:"Noto Sans Arabic";
+  src:url("./assets/fonts/NotoSansArabic-Variable.woff2") format("woff2");
+  font-weight:100 900;
+  font-style:normal;
+  font-display:block;
+  unicode-range:U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC;
+}
+
 :root{
-  --font-sans:Zen, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* The Arabic companions by what they are, and the one in use. A person's
+     choice replaces --font-arabic with one of the two names above it. */
+  --font-arabic-kufi:"Noto Kufi Arabic";
+  --font-arabic-sans:"Noto Sans Arabic";
+  --font-arabic:var(--font-arabic-kufi);
+  --font-sans:var(--font-arabic), Zen, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display:var(--font-sans);
-  --font-mono:Zen Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  --font-serif:Georgia,serif;
+  --font-mono:var(--font-arabic), Zen Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-serif:var(--font-arabic), Georgia, serif;
   /* The default is Zen as drawn, and that is a decision rather than an omission.
      `base.css` puts this on <body>, so whatever is here is the voice of every
      surface in the estate — which is exactly why it should not carry a brand's.

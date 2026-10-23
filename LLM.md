@@ -105,9 +105,20 @@ the devDependency here.
 `vars(pref)` maps a preference to custom properties and touches no document;
 `@hanzo/appearance` applies it. Axes: `type` (`--type-scale`), `ratio`
 (`--type-ratio`), `modular` (display rungs), `density` (`--density`), `font`
-(`--font-sans`), `width` (`--container-*`), `radius` (`--radius-scale`, every
-`--radius-*` but the pill), `accent`, and `theme`, which is a class and emits
-nothing here.
+(`--font-sans`), `arabic` (`--font-arabic`), `width` (`--container-*`), `radius`
+(`--radius-scale`, every `--radius-*` but the pill), `accent`, and `theme`, which
+is a class and emits nothing here.
+
+Arabic is its own axis because Zen draws none. `tokens/fonts.css` declares two
+companions from `@hanzo/font` (Noto Kufi Arabic, the default, and Noto Sans
+Arabic), each under its own family with an Arabic `unicode-range`, and names
+`--font-arabic` FIRST in the sans, mono and serif stacks: Latin passes the
+companion over without a download and stays in the chosen face, so one property
+sets Arabic under every face but `system`, which leaves every script to the
+platform. The default is also declared under `Zen` and `Zen Mono`, which only
+composites because its descriptors equal Zen's (weight 100 900): a companion at
+another weight wins the weight match for Latin too and sends it to the system
+sans, silently.
 
 An accent is a family: `--primary`, `--accent`, their `-foreground` (design's
 `#0a0a0a` or `#fafafa`, whichever contrasts more — `ink()`), and their `-hover`

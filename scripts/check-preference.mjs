@@ -128,6 +128,28 @@ check("a face is set by REFERENCE, so a brand's own face still wins", () => {
   eq(vars({ font: "default" }), {}, "default is no opinion, not a self-reference:");
 });
 
+check("Arabic is its own axis, set by reference, and touches no other face", () => {
+  eq(vars({ arabic: "kufi" }), { "--font-arabic": "var(--font-arabic-kufi)" });
+  eq(vars({ arabic: "sans" }), { "--font-arabic": "var(--font-arabic-sans)" });
+  eq(vars({ arabic: "default" }), {}, "default is no opinion:");
+  eq(vars({ arabic: "naskh" }), {}, "an unknown companion is refused:");
+  // Orthogonal to the face: serif with Kufi is two names, neither restated.
+  eq(vars({ font: "serif", arabic: "sans" }), { "--font-sans": "var(--font-serif)", "--font-arabic": "var(--font-arabic-sans)" });
+});
+
+check("every stack names the Arabic slot first, so one property reaches them all", () => {
+  const fonts = readFileSync(join(root, "tokens/fonts.css"), "utf8");
+  for (const name of ["--font-sans", "--font-mono", "--font-serif"]) {
+    const m = new RegExp(`^\\s*${name}:([^;]+);`, "m").exec(fonts);
+    ok(m, `${name} is not declared`);
+    ok(m[1].trim().startsWith("var(--font-arabic)"), `${name} reads ${m[1].trim().slice(0, 40)}…`);
+  }
+  for (const v of Object.values({ kufi: "var(--font-arabic-kufi)", sans: "var(--font-arabic-sans)" })) {
+    const name = /var\((--[a-z-]+)\)/.exec(v)[1];
+    ok(new RegExp(`^\\s*${name}:`, "m").test(fonts), `${name} is not declared`);
+  }
+});
+
 check("the measure moves containers, never the column count", () => {
   const v = vars({ width: "wide" });
   ok(!("--grid-columns" in v), "changing the columns is a different page, not a wider one");
@@ -270,7 +292,7 @@ check("every emitted name is one the token files actually read", () => {
   // A variable nothing reads is a write into another document — the exact
   // mistake this package exists to prevent. The knobs are READ by the ramps
   // (as var(--knob, 1)); the colours are DECLARED by colors.css.
-  const files = ["tokens/typography.css", "tokens/spacing.css", "tokens/grid.css", "tokens/colors.css", "tokens/radius.css"];
+  const files = ["tokens/typography.css", "tokens/spacing.css", "tokens/grid.css", "tokens/colors.css", "tokens/radius.css", "tokens/fonts.css"];
   const text = files.map((f) => readFileSync(join(root, f), "utf8")).join("\n");
   const declared = new Set([...text.matchAll(/^\s*(--[a-z0-9-]+)\s*:/gm)].map((m) => m[1]));
   const read = new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
@@ -278,7 +300,7 @@ check("every emitted name is one the token files actually read", () => {
   // EVERY axis, not a sample — an axis missing here is an axis whose names
   // nothing gates, which is how a knob starts writing into another document.
   const emitted = Object.keys(
-    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", width: "wide", accent: "#fff", radius: "round", theme: "dark" })
+    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", arabic: "sans", width: "wide", accent: "#fff", radius: "round", theme: "dark" })
   );
   const orphans = emitted.filter((k) => !declared.has(k) && !read.has(k));
   eq(orphans, [], "emitted names no token file declares or reads:");

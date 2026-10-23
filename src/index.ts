@@ -68,4 +68,4 @@ export function injectDesignCss(href: string): void {
 // custom properties. Pure: it maps a preference to variables and returns them,
 // so an app, an embedded preview and a server render all apply it the same way.
 export { vars, css, isColor, ink, brightness, TYPE_MIN, TYPE_MAX, RATIO_MIN, RATIO_MAX } from './preference.js';
-export type { Preference, Density, Face, Measure, Scheme, Corner } from './preference.js';
+export type { Preference, Density, Face, Arabic, Measure, Scheme, Corner } from './preference.js';

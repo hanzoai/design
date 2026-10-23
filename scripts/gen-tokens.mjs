@@ -36,7 +36,8 @@ const fontDir = dirname(require.resolve('@hanzo/font/css'))
 // concern, and this is only the copy.
 // Read beside the faces rather than through the specifier: the package's
 // exports map does not publish its own package.json, and it has no reason to.
-const FLOOR = [1, 9, 2]
+// 1.9.4 is the first to carry the Arabic companions tokens/fonts.css names.
+const FLOOR = [1, 9, 4]
 const { version } = JSON.parse(readFileSync(join(fontDir, '..', 'package.json'), 'utf8'))
 const got = version.split('.').map(Number)
 // Order is decided by the first component that differs, so 1.10.0 and 2.0.0
@@ -48,12 +49,16 @@ if (differs !== -1 && got[differs] < FLOOR[differs])
       `raise the floor to ${FLOOR.join('.')} rather than copying from it`,
   )
 
-for (const [from, to] of [
+const FACES = [
   ['fonts/zen-sans/Zen-Variable.woff2', 'Zen-Variable.woff2'],
   ['fonts/zen-mono/ZenMono-Variable.woff2', 'ZenMono-Variable.woff2'],
-])
-  copyFileSync(join(fontDir, from), join(root, 'assets/fonts', to))
-console.log(`gen-tokens: copied 2 variable faces from @hanzo/font ${version}`)
+  // The Arabic companions are not ours, so their licence travels with them.
+  ['fonts/arabic/NotoKufiArabic-Variable.woff2', 'NotoKufiArabic-Variable.woff2'],
+  ['fonts/arabic/NotoSansArabic-Variable.woff2', 'NotoSansArabic-Variable.woff2'],
+  ['fonts/arabic/OFL.txt', 'LICENSE-Arabic.txt'],
+]
+for (const [from, to] of FACES) copyFileSync(join(fontDir, from), join(root, 'assets/fonts', to))
+console.log(`gen-tokens: copied ${FACES.length - 1} variable faces and the Arabic licence from @hanzo/font ${version}`)
 
 // THE COLOURS ARE COPIED TOO, for the reason the faces are. @hanzo/tokens owns
 // the colour system (src/theme.ts) and emits it as `css/colors`; this package

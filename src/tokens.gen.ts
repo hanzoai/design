@@ -339,6 +339,7 @@ export const zIndex = {
 export const fonts = {
   'font-arabic-kufi': '"Noto Kufi Arabic"',
   'font-arabic-sans': '"Noto Sans Arabic"',
+  'font-arabic-plex': '"IBM Plex Sans Arabic"',
   'font-arabic': 'var(--font-arabic-kufi)',
   'font-sans': 'var(--font-arabic), Zen, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   'font-display': 'var(--font-sans)',
@@ -657,6 +658,7 @@ export const cssVars = {
   '--z-notification': 'var(--z-toast)',
   '--font-arabic-kufi': '"Noto Kufi Arabic"',
   '--font-arabic-sans': '"Noto Sans Arabic"',
+  '--font-arabic-plex': '"IBM Plex Sans Arabic"',
   '--font-arabic': 'var(--font-arabic-kufi)',
   '--font-sans': 'var(--font-arabic), Zen, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   '--font-display': 'var(--font-sans)',

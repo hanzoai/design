@@ -131,6 +131,7 @@ check("a face is set by REFERENCE, so a brand's own face still wins", () => {
 check("Arabic is its own axis, set by reference, and touches no other face", () => {
   eq(vars({ arabic: "kufi" }), { "--font-arabic": "var(--font-arabic-kufi)" });
   eq(vars({ arabic: "sans" }), { "--font-arabic": "var(--font-arabic-sans)" });
+  eq(vars({ arabic: "plex" }), { "--font-arabic": "var(--font-arabic-plex)" });
   eq(vars({ arabic: "default" }), {}, "default is no opinion:");
   eq(vars({ arabic: "naskh" }), {}, "an unknown companion is refused:");
   // Orthogonal to the face: serif with Kufi is two names, neither restated.
@@ -144,7 +145,7 @@ check("every stack names the Arabic slot first, so one property reaches them all
     ok(m, `${name} is not declared`);
     ok(m[1].trim().startsWith("var(--font-arabic)"), `${name} reads ${m[1].trim().slice(0, 40)}…`);
   }
-  for (const v of Object.values({ kufi: "var(--font-arabic-kufi)", sans: "var(--font-arabic-sans)" })) {
+  for (const v of Object.values({ kufi: "var(--font-arabic-kufi)", sans: "var(--font-arabic-sans)", plex: "var(--font-arabic-plex)" })) {
     const name = /var\((--[a-z-]+)\)/.exec(v)[1];
     ok(new RegExp(`^\\s*${name}:`, "m").test(fonts), `${name} is not declared`);
   }

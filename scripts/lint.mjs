@@ -328,15 +328,12 @@ function lintFile(abs, root) {
   //    is exactly why it keeps being reached for. ANY style object counts:
   //    `style={{ color: 'var(--x)' }}` names a token and still bypasses the prop
   //    that would carry it, and `style={STYLE}` is the same object behind a name.
-  //    The exception is a value nothing else can express — a transform computed
-  //    per frame on a raw <canvas>, a custom property a package reads — and it
-  //    says why in a comment that begins `inline-style:`, on its own line or the
-  //    one above. That comment is what passes it: an unstated reason is a
-  //    violation, a stated one is a line a reviewer can read and refuse.
+  //    There is no exception, and no comment passes one (owner, 2026-10-22): a
+  //    value the props cannot say is fixed in the package that owns it — a font
+  //    gui-config names, a slot a sheet keys on, a motion keyed on data-motion —
+  //    and a surface's allowance holds what it has not yet moved.
   if (/\.(jsx|tsx)$/.test(rel)) {
-    const rawLines = raw.split('\n')
     const srcLines = src.split('\n')
-    const because = (n) => /(\/\/|\/\*)\s*inline-style:/.test(rawLines[n] ?? '')
     for (const m of src.matchAll(/(^|[\s{(,])style=\{/gm)) {
       const line = lineOf(src, m.index + m[1].length)
       const col = m.index + m[1].length - (src.lastIndexOf('\n', m.index) + 1)
@@ -344,9 +341,8 @@ function lintFile(abs, root) {
       // about a style object rather than writing one.
       const head = (srcLines[line - 1] ?? '').slice(0, col).replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '')
       if (head.includes('//')) continue
-      if (because(line - 1) || because(line - 2)) continue
       flag(rel, line, 'inline-style', 'style={…}',
-        'say it as @hanzo/gui props or an @hanzo/ui component; a value nothing else can express carries `// inline-style: <why>`')
+        'say it as @hanzo/gui props or an @hanzo/ui component; a value they cannot say is fixed in the package that owns it')
     }
   }
 

@@ -41,10 +41,13 @@ export type Face = "default" | "system" | "serif" | "mono";
  * question is not the same one `Face` answers. A person reading in serif and one
  * reading in mono both need Arabic letters, and an enum of pairings ("serif with
  * kufi") would multiply every face by every companion and freeze the pairs.
- * Named by what the face IS, like `Face`: a geometric Kufi, or a sans drawn on
- * Naskh's skeleton. The families are the token file's.
+ * Each value is the short name of a companion `tokens/fonts.css` declares:
+ * `kufi` Noto Kufi Arabic (geometric, the default), `sans` Noto Sans Arabic (a
+ * sans on Naskh's skeleton), `plex` IBM Plex Sans Arabic. A person picks a face
+ * they were shown, so the value names that face rather than a style two of them
+ * share.
  */
-export type Arabic = "default" | "kufi" | "sans";
+export type Arabic = "default" | "kufi" | "sans" | "plex";
 
 /** How wide the page runs before it stops. */
 export type Measure = "narrow" | "default" | "wide";
@@ -204,6 +207,7 @@ const FACE: Partial<Record<Face, string>> = {
 const ARABIC: Partial<Record<Arabic, string>> = {
   kufi: "var(--font-arabic-kufi)",
   sans: "var(--font-arabic-sans)",
+  plex: "var(--font-arabic-plex)",
 };
 
 /**

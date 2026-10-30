@@ -89,7 +89,7 @@ import { HanzoLogo } from "@hanzo/design/components/core/HanzoLogo.jsx";
 | `content/` | The words — brand voice and taglines. |
 | `docs/` | How to use the system — integrate the tokens, theme, extend. |
 | `guidelines/` | Specimen cards — color, type, spacing, brand, iconography — the visual reference. |
-| `assets/fonts/` | Zen + Zen Mono, self-hosted (two variable `.woff2`, 141 KB, SIL OFL-1.1), and the Arabic companions Noto Kufi Arabic (95 KB) and Noto Sans Arabic (133 KB), fetched only by a page with Arabic on it. No Google Fonts request. |
+| `assets/fonts/` | Zen + Zen Mono, self-hosted (two variable `.woff2`, 141 KB, SIL OFL-1.1), and the Arabic companions Noto Kufi Arabic (95 KB), Noto Sans Arabic (133 KB) and IBM Plex Sans Arabic (70–75 KB a weight), fetched only by a page with Arabic on it, and only the one in use. No Google Fonts request. |
 | `assets/` | The mark, wordmark, favicon, provider + partner logos, brand imagery. |
 | `scripts/check-tokens.mjs` | The gate: every token file is served, every internal `var()` resolves, and the contrast floors hold. Runs on `npm run build`. |
 | `ui_kits/` | Composed surfaces (e.g. `SiteChrome`) assembled from the components. |

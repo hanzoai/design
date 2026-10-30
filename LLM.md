@@ -109,16 +109,21 @@ the devDependency here.
 (`--radius-scale`, every `--radius-*` but the pill), `accent`, and `theme`, which
 is a class and emits nothing here.
 
-Arabic is its own axis because Zen draws none. `tokens/fonts.css` declares two
-companions from `@hanzo/font` (Noto Kufi Arabic, the default, and Noto Sans
-Arabic), each under its own family with an Arabic `unicode-range`, and names
+Arabic is its own axis because Zen draws none. `tokens/fonts.css` declares three
+companions from `@hanzo/font` (`kufi` Noto Kufi Arabic, the default; `sans` Noto
+Sans Arabic; `plex` IBM Plex Sans Arabic, IBM's own file per weight, uncut because
+the OFL reserves "Plex"), each under its own family with an Arabic `unicode-range`
+and each drawing every letter of every Arabic-script locale Hanzo ships (Cairo,
+Readex Pro and Rubik were measured and miss Pashto, Sindhi, Kurdish or Uyghur
+letters). It names
 `--font-arabic` FIRST in the sans, mono and serif stacks: Latin passes the
 companion over without a download and stays in the chosen face, so one property
 sets Arabic under every face but `system`, which leaves every script to the
 platform. The default is also declared under `Zen` and `Zen Mono`, which only
 composites because its descriptors equal Zen's (weight 100 900): a companion at
 another weight wins the weight match for Latin too and sends it to the system
-sans, silently.
+sans, silently. That is why the default must be one variable file and Plex, one
+file per weight, is offered under its own name only.
 
 An accent is a family: `--primary`, `--accent`, their `-foreground` (design's
 `#0a0a0a` or `#fafafa`, whichever contrasts more — `ink()`), and their `-hover`

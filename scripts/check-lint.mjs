@@ -102,9 +102,23 @@ writeFileSync(join(root, 'hanzo-design.allow.json'), JSON.stringify({ 'flex-prop
 r = run('app', 'components')
 check('a misspelt rule is refused', r.code === 1 && r.out.includes('not rules: flex-props'), r.out)
 
+// inline-style (rule 6): every style object counts, and a comment saying why
+// passes none of them. The one in a line comment is talk, not a style.
+rmSync(join(root, 'app'), { recursive: true, force: true })
+rmSync(join(root, 'components'), { recursive: true, force: true })
+rmSync(join(root, 'hanzo-design.allow.json'), { force: true })
+write('app/style.tsx', `
+export const A = () => <div style={{ color: 'var(--foreground)' }} />
+// inline-style: a reason no longer passes it
+export const B = () => <div style={{ width: 1 }} />
+export const C = () => <div /> // style={{ width: 1 }} is only mentioned here
+`)
+r = run('app')
+check('inline-style: a comment passes nothing', r.code === 1 && /inline-style\s+\(2, NEW/.test(r.out), r.out)
+
 rmSync(root, { recursive: true, force: true })
 if (failed) {
   console.error(`check-lint: ${failed} failed`)
   process.exit(1)
 }
-console.log('check-lint: flex-prop floor holds')
+console.log('check-lint: flex-prop floor and inline-style hold')

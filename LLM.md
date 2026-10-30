@@ -250,9 +250,10 @@ composition over them — data and layout, no design decisions:
 should have named — and rule 6, `inline-style`, catches it writing CSS at all:
 ANY `style={…}` object in a `.jsx`/`.tsx` file, literal or named, because a
 token read through `style` still bypasses the gui prop or @hanzo/ui component
-that should carry it. A value nothing else can express (a per-frame transform on
-a raw `<canvas>`, a custom property a package reads) passes when a comment that
-begins `inline-style:` sits on its line or the line above, saying why. This
+that should carry it. No comment passes one (owner, 2026-10-22): a value the
+props cannot say is fixed in the package that owns it — a font gui-config names
+(`$serif`), a slot a sheet keys on (`data-code`), a motion keyed on
+`data-motion` — and released, so every surface says it the same way. This
 package's own `components/` are the self-contained parts — plain React, inline
 `var()`s by design — so the repo's `hanzo-design.allow.json` holds their count.
 

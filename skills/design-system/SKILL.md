@@ -91,7 +91,7 @@ It checks eight things, each of which has shipped to production at least once:
 4. `raw-font-size` — `px`/`pt` instead of the scale
 5. `all-caps` — an uppercase label that is not an eyebrow
 6. `inline-style` — any `style={…}` object; say it as @hanzo/gui props or an @hanzo/ui
-   component, and a value nothing else can express carries `// inline-style: <why>`
+   component, and a value they cannot say is fixed in the package that owns it
 7. `icon-set` — an icon library that is not lucide
 8. `wrong-package` — `@hanzoai/design`, which resolves to nothing
 

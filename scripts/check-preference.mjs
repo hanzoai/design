@@ -220,6 +220,18 @@ check("an accent brings its own ink and hover, on both names", () => {
   eq(v["--primary-hover"], "color-mix(in oklab, #3b82f6 85%, #0a0a0a)");
 });
 
+check("a background brings its surface ladder and ink", () => {
+  const v = vars({ background: "#090d16" });
+  eq(v["--background"], "#090d16");
+  eq(v["--foreground"], "#fafafa");
+  ok(v["--card"].includes("#090d16"), "card mixes from ground");
+  ok(v["--muted"].includes("#090d16"), "muted mixes from ground");
+  ok(v["--secondary"].includes("#090d16"), "secondary mixes from ground");
+  const light = vars({ background: "#faf8f5" });
+  eq(light["--background"], "#faf8f5");
+  eq(light["--foreground"], "#0a0a0a");
+});
+
 check("the ink is whichever of design's two reads better — 4.5:1 on every preset", () => {
   const lum = (hex) => brightness(hex);
   const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
@@ -301,7 +313,7 @@ check("every emitted name is one the token files actually read", () => {
   // EVERY axis, not a sample — an axis missing here is an axis whose names
   // nothing gates, which is how a knob starts writing into another document.
   const emitted = Object.keys(
-    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", arabic: "sans", width: "wide", accent: "#fff", radius: "round", theme: "dark" })
+    vars({ type: 1.1, ratio: 1.2, density: "compact", font: "serif", arabic: "sans", width: "wide", accent: "#fff", background: "#090d16", radius: "round", theme: "dark" })
   );
   const orphans = emitted.filter((k) => !declared.has(k) && !read.has(k));
   eq(orphans, [], "emitted names no token file declares or reads:");

@@ -88,6 +88,11 @@ export interface Preference {
    */
   accent?: string;
   /**
+   * A CSS colour for the page ground (--background) and the surface ladder
+   * (--card, --popover, --muted, --secondary) + ink (--foreground) derived from it.
+   */
+  background?: string;
+  /**
    * Light, dark or the device's. A class on <html>, not a custom property, so
    * `vars()` emits nothing for it — `@hanzo/appearance` applies it.
    */
@@ -412,6 +417,26 @@ export function vars(p: Preference): Record<string, string> {
     out["--accent"] = fill;
     out["--accent-foreground"] = label;
     out["--accent-hover"] = hover;
+  }
+
+  // A page ground is also a FAMILY: setting --background alone leaves cards,
+  // panels, popovers and raised controls on the monochrome neutral ladder while
+  // the canvas underneath them changes hue or polarity. Deriving the surface
+  // steps and the foreground ink from the chosen ground keeps every surface in
+  // relation to the canvas it stands on.
+  const ground = p.background && isColor(p.background) ? p.background.trim() : undefined;
+  const groundInk = ground ? ink(ground) : undefined;
+  if (ground && groundInk) {
+    out["--background"] = ground;
+    out["--foreground"] = groundInk;
+    out["--card"] = `color-mix(in oklab, ${ground} 95%, ${groundInk})`;
+    out["--card-foreground"] = groundInk;
+    out["--popover"] = `color-mix(in oklab, ${ground} 95%, ${groundInk})`;
+    out["--popover-foreground"] = groundInk;
+    out["--muted"] = `color-mix(in oklab, ${ground} 92%, ${groundInk})`;
+    out["--secondary"] = `color-mix(in oklab, ${ground} 86%, ${groundInk})`;
+    out["--secondary-hover"] = `color-mix(in oklab, ${ground} 80%, ${groundInk})`;
+    out["--secondary-foreground"] = groundInk;
   }
 
   return out;

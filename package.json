@@ -1,6 +1,6 @@
 {
   "name": "@hanzo/design",
-  "version": "0.5.40",
+  "version": "0.5.41",
   "packageManager": "pnpm@11.17.0",
   "description": "Hanzo Design System — monochrome, dark-default tokens + components + brand assets, the single source of truth for every Hanzo surface. CSS + typed programmatic tokens.",
   "license": "MIT OR Apache-2.0",
@@ -24,6 +24,12 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json",
+    "./app": {
+      "types": "./app/index.d.ts",
+      "import": "./app/index.js",
+      "default": "./app/index.js"
+    },
+    "./app/*": "./app/*",
     "./styles.css": "./styles.css",
     "./tokens/*": "./tokens/*",
     "./components/*": "./components/*",
@@ -47,6 +53,7 @@
   },
   "files": [
     "dist",
+    "app",
     "tailwind.css",
     "src",
     "styles.css",

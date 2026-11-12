@@ -12,8 +12,8 @@ importers:
         specifier: ^1.9.6
         version: 1.9.6(next@16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))
       '@hanzo/tokens':
-        specifier: ^1.0.4
-        version: 1.0.4
+        specifier: ^1.1.2
+        version: 1.1.2
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -28,8 +28,8 @@ packages:
     peerDependencies:
       next: '>=13.2.0'
 
-  '@hanzo/tokens@1.0.4':
-    resolution: {integrity: sha512-Fhuwsh1Q8/aRIiA44CRt+5dMnAqpcf6R1WGuJ8J3DtLDgYIAorOO/JcUlJdh3GSAjQJTFC2a4uLnw/aPqlrUCw==}
+  '@hanzo/tokens@1.1.2':
+    resolution: {integrity: sha512-cKLKP1VhMf1kfddEcJNcczyKgzHrqnktIQF10grMurHF4myIQDS2k/Rd+42D441mYO9pl2bKpJSoFH7S3noPVQ==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -481,7 +481,7 @@ snapshots:
     dependencies:
       next: 16.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
 
-  '@hanzo/tokens@1.0.4': {}
+  '@hanzo/tokens@1.1.2': {}
 
   '@img/colour@1.1.0':
     optional: true

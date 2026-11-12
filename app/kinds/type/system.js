@@ -87,7 +87,7 @@ export const PRESETS = [
         weights: { display: 300, heading: 600, body: 450, strong: 650 },
         leading: { display: 1.0, heading: 1.12, body: 1.55 },
         tracking: { display: -0.025, caps: 0.1 },
-        colors: { ink: '#ededed', paper: '#0a0a0b', accent: '#6aa5ff', muted: '#8b8b93', second: '#b48cff' },
+        colors: { ink: '#ededed', paper: '#0a0a0b', accent: '#6aa5ff', muted: '#8b8b93', second: '#9ec5ff' },
     }),
     sys({
         name: 'Organic',

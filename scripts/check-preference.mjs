@@ -30,8 +30,8 @@ const source = (f) =>
     .replace(/^export /gm, "");
 const js = source("src/tokens.gen.ts") + "\n" + source("src/preference.ts");
 
-const mod = new Function(`${js}; return { vars, css, isColor, ink, brightness, TYPE_MIN, TYPE_MAX };`)();
-const { vars, css, isColor, ink, brightness, TYPE_MIN, TYPE_MAX } = mod;
+const mod = new Function(`${js}; return { vars, css, isColor, ink, brightness, purple, TYPE_MIN, TYPE_MAX };`)();
+const { vars, css, isColor, ink, brightness, purple, TYPE_MIN, TYPE_MAX } = mod;
 
 let failed = 0;
 const check = (name, fn) => {
@@ -235,7 +235,7 @@ check("a background brings its surface ladder and ink", () => {
 check("the ink is whichever of design's two reads better — 4.5:1 on every preset", () => {
   const lum = (hex) => brightness(hex);
   const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-  for (const hue of ["#808000", "#3b82f6", "#8b5cf6", "#f43f5e", "#f59e0b", "#fafafa", "#0a0a0a"]) {
+  for (const hue of ["#808000", "#3b82f6", "#10b981", "#f43f5e", "#f59e0b", "#fafafa", "#0a0a0a"]) {
     const label = ink(hue);
     ok(label === "#0a0a0a" || label === "#fafafa", `${hue} -> ${label}`);
     const other = label === "#0a0a0a" ? "#fafafa" : "#0a0a0a";
@@ -253,6 +253,14 @@ check("every notation an accent is stored in reads the same brightness", () => {
   ok(near(brightness("rgba(59, 130, 246, .5)"), y), "rgba comma");
   ok(near(brightness("hsl(217 91% 60%)"), y), "hsl");
   ok(Math.abs(brightness("oklch(62.3% 0.188 259.8)") - y) < 0.03, "oklch");
+});
+
+check("a purple accent is not an accent", () => {
+  for (const hue of ["#8b5cf6", "#a855f7", "#7c5cff", "rgb(139 92 246)", "hsl(266 79% 50%)", "oklch(62.7% 0.265 303.9)"]) {
+    ok(purple(hue), `${hue} is purple`);
+    ok(!("--primary" in vars({ accent: hue })), `accepted ${hue}`);
+  }
+  for (const hue of ["#3b82f6", "#10b981", "#f43f5e", "#808000", "#fafafa", "#0a0a0a", "oklch(62.3% 0.188 259.8)", "oklch(0.715 0.143 215)"]) ok(!purple(hue), `${hue} is not purple`);
 });
 
 check("a colour this module cannot read is not an accent", () => {

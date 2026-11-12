@@ -42,9 +42,9 @@
      section form; chrome, type and every control stay on the monochrome ladder
      below. The same in both themes, because art is not themed. */
   --art-tide:#2F6BFF;
-  --art-iris:#8B5CF6;
+  --art-iris:#A1A1AA;
   --art-ember:#FF7A3D;
-  --art-glow:#F4F1FF;
+  --art-glow:#F4F4F5;
 
   /* ——— the opacity ladder: the real palette ——— */
   --white-03:rgb(255 255 255 / .03); /* the raised fill */

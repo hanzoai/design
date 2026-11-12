@@ -175,7 +175,7 @@ export function FigmaDesignWorkspace({ host }) {
             h: kind === 'text' ? 54 : 130,
             rx: kind === 'frame' ? 16 : 12,
             fill: kind === 'text' ? '#18181b' : '#11131c',
-            stroke: kind === 'frame' ? '#38bdf8' : '#a855f7',
+            stroke: kind === 'frame' ? '#38bdf8' : '#a1a1aa',
             textColor: '#fafafa',
             fontSize: kind === 'text' ? 16 : 13,
             padding: 16,

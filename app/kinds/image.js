@@ -78,10 +78,10 @@ async function proceduralPicture(prompt, aspect, idx) {
     for (let i = 0; i < prompt.length; i++)
         hash = Math.imul(hash ^ prompt.charCodeAt(i), 16777619);
     const palettes = [
-        ['#090a10', '#f43f5e', '#6366f1', '#f8fafc'],
+        ['#090a10', '#f43f5e', '#38bdf8', '#f8fafc'],
         ['#071318', '#06b6d4', '#10b981', '#ecfeff'],
-        ['#140b1c', '#ec4899', '#f59e0b', '#fdf2f8'],
-        ['#0f172a', '#3b82f6', '#8b5cf6', '#f1f5f9'],
+        ['#0a0a0a', '#ec4899', '#f59e0b', '#fdf2f8'],
+        ['#0f172a', '#3b82f6', '#06b6d4', '#f1f5f9'],
         ['#18181b', '#e11d48', '#fb923c', '#fafafa'],
     ];
     const [bg, c1, c2, ink] = palettes[Math.abs(hash) % palettes.length];

@@ -324,6 +324,49 @@ export function brightness(v: string): number | undefined {
   return Math.pow(clamp(num(parts[0], 1), 0, 1), 3);
 }
 
+/**
+ * Is this colour purple — hue 245 to 335 (oklch: 272 to 340) with real chroma? The system spends no
+ * purple, so a stored accent in that band is refused and the monochrome ink
+ * stands. Reads hex, rgb(), hsl() and oklch(); anything else has no hue here.
+ */
+export function purple(v: string): boolean {
+  const s = v.trim().toLowerCase();
+  let hue: number;
+  let chroma: number;
+  const hex = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.exec(s);
+  const fn = /^(rgba?|hsla?|oklch)\(([^)]*)\)$/.exec(s);
+  const spin = (r: number, g: number, b: number) => {
+    const hi = Math.max(r, g, b);
+    const lo = Math.min(r, g, b);
+    const d = hi - lo;
+    chroma = d;
+    hue =
+      d === 0 ? 0 : hi === r ? (((g - b) / d) % 6) * 60 : hi === g ? ((b - r) / d + 2) * 60 : ((r - g) / d + 4) * 60;
+    hue = (hue + 360) % 360;
+  };
+  if (hex) {
+    const h = hex[1];
+    const full = h.length <= 4 ? [...h.slice(0, 3)].map((c) => c + c).join("") : h.slice(0, 6);
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+    spin(r, g, b);
+    return hue! >= 245 && hue! <= 335 && chroma! > 0.15;
+  }
+  if (!fn) return false;
+  const parts = fn[2].split(/[\s,/]+/).filter(Boolean);
+  if (parts.length < 3 || parts.slice(0, 3).some((p) => !Number.isFinite(parseFloat(p)))) return false;
+  if (fn[1].startsWith("rgb")) {
+    const [r, g, b] = parts.slice(0, 3).map((p) => clamp(num(p, 255), 0, 255) / 255);
+    spin(r, g, b);
+    return hue! >= 245 && hue! <= 335 && chroma! > 0.15;
+  }
+  if (fn[1].startsWith("hsl")) {
+    const h = ((parseFloat(parts[0]) % 360) + 360) % 360;
+    return h >= 245 && h <= 335 && clamp(num(parts[1], 1), 0, 1) > 0.2;
+  }
+  const h = ((parseFloat(parts[2]) % 360) + 360) % 360;
+  return h >= 272 && h <= 340 && clamp(num(parts[1], 0.4), 0, 1) > 0.04;
+}
+
 const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 
 /**
@@ -407,7 +450,7 @@ export function vars(p: Preference): Record<string, string> {
   // the fill used to be, so a blue button turned grey under the cursor. So the
   // fill, the ink that reads on it and the hover that deepens it are stated
   // together, from the one colour, or not at all.
-  const fill = p.accent && isColor(p.accent) ? p.accent.trim() : undefined;
+  const fill = p.accent && isColor(p.accent) && !purple(p.accent) ? p.accent.trim() : undefined;
   const label = fill ? ink(fill) : undefined;
   if (fill && label) {
     const hover = `color-mix(in oklab, ${fill} 85%, ${label})`;
